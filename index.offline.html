@@ -1,0 +1,1335 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>Septal Cartilage 3D</title>
+<style>
+:root{
+  --bg:#eef1f3; --panel:#fbfcfc; --ink:#14232b; --muted:#566872; --line:#d3dbe0; --accent:#1f6f8b; --accent-ink:#ffffff;
+  --well:#0d1317; --well-ink:#dbe6ec; --cart:#7cc3dc; --strut:#e4572e; --harv:#2f9e6b; --amber:#e0a030;
+  --ok-bg:#dcf1e6; --ok-ink:#12603c; --mid-bg:#fbebc9; --mid-ink:#7a4a05; --bad-bg:#f9dcd3; --bad-ink:#8d2a10;
+  --focus:#1f6f8b;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#101619; --panel:#172026; --ink:#e6eef2; --muted:#93a5af; --line:#2a3943; --accent:#58b2d1; --accent-ink:#06222c;
+    --ok-bg:#183a2a; --ok-ink:#8fe0b5; --mid-bg:#3d2f10; --mid-ink:#f2c872; --bad-bg:#4a2018; --bad-ink:#f5a791; --focus:#58b2d1;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#101619; --panel:#172026; --ink:#e6eef2; --muted:#93a5af; --line:#2a3943; --accent:#58b2d1; --accent-ink:#06222c;
+  --ok-bg:#183a2a; --ok-ink:#8fe0b5; --mid-bg:#3d2f10; --mid-ink:#f2c872; --bad-bg:#4a2018; --bad-ink:#f5a791; --focus:#58b2d1;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;height:100%;background:var(--bg);color:var(--ink);font:14px/1.45 "Public Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-variant-numeric:tabular-nums}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.app{display:grid;grid-template-columns:392px minmax(0,1fr);grid-template-rows:auto minmax(0,1fr);height:100%;min-height:0}
+header{grid-column:1/-1;display:flex;align-items:center;gap:18px;padding:10px 16px;background:var(--panel);border-bottom:1px solid var(--line);flex-wrap:wrap}
+header h1{font-size:17px;margin:0;font-weight:700;letter-spacing:-.01em}
+header .sub{color:var(--muted);font-size:12.5px}
+nav{display:flex;gap:4px;margin-left:auto}
+nav button{border:1px solid transparent;background:none;padding:6px 14px;border-radius:6px;cursor:pointer;color:var(--muted);font-weight:500}
+nav button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink)}
+nav button:hover:not([aria-selected="true"]){border-color:var(--line);color:var(--ink)}
+.side{overflow:auto;padding:12px;display:flex;flex-direction:column;gap:12px;min-height:0;border-right:1px solid var(--line)}
+.stage{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;padding:8px;min-height:0}
+.pane{display:flex;flex-direction:column;min-height:0;min-width:0;background:var(--well);border-radius:8px;overflow:hidden;border:1px solid var(--line)}
+.pane-h{display:flex;align-items:center;gap:8px;padding:6px 10px;color:var(--well-ink);font-size:12.5px;background:rgba(255,255,255,.05);flex-wrap:wrap}
+.pane-h b{font-weight:600}
+.pane-h .sp{flex:1}
+.pane-h button{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);color:var(--well-ink);padding:2px 9px;border-radius:5px;cursor:pointer;font-size:12px}
+.pane-h button:hover{background:rgba(255,255,255,.16)}
+.pane-h label{display:inline-flex;gap:4px;align-items:center;cursor:pointer}
+.pane-b{position:relative;flex:1;min-height:0}
+#sag{position:absolute;inset:0;width:100%;height:100%;display:block}
+#sag{touch-action:none;cursor:crosshair}
+#three canvas{position:absolute;inset:0;width:100%!important;height:100%!important;display:block}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px}
+.card h2{margin:0 0 8px;font-size:13.5px;font-weight:650}
+.card p{margin:6px 0;color:var(--muted);font-size:13px}
+.card p.ink{color:var(--ink)}
+.row{display:flex;align-items:center;gap:8px;margin:6px 0;flex-wrap:wrap}
+.row label{min-width:78px;color:var(--muted);font-size:12.5px}
+.row input[type=range]{flex:1;min-width:120px;accent-color:var(--accent)}
+.row output{min-width:54px;text-align:right;font-size:12.5px}
+.btn{border:1px solid var(--line);background:var(--panel);padding:5px 11px;border-radius:6px;cursor:pointer}
+.btn:hover{border-color:var(--accent)}
+.btn.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.seg{display:flex;gap:4px;flex-wrap:wrap}
+input[type=number],select,input[type=text]{background:var(--bg);border:1px solid var(--line);border-radius:5px;padding:3px 6px;width:72px}
+select{width:100%}
+.drop{border:1.5px dashed var(--line);border-radius:8px;padding:14px;text-align:center;color:var(--muted);cursor:pointer}
+.drop.over{border-color:var(--accent);color:var(--ink)}
+.kv{display:grid;grid-template-columns:1fr auto;gap:2px 10px;font-size:13px}
+.kv span:nth-child(odd){color:var(--muted)}
+.kv span:nth-child(even){text-align:right;font-weight:600}
+.note{font-size:12.5px;color:var(--muted)}
+.warn{color:var(--mid-ink);background:var(--mid-bg);padding:6px 8px;border-radius:6px;font-size:12.5px;margin:6px 0}
+.chip{display:inline-block;padding:1px 9px;border-radius:99px;font-size:12px;font-weight:600}
+.chip.ok{background:var(--ok-bg);color:var(--ok-ink)} .chip.mid{background:var(--mid-bg);color:var(--mid-ink)} .chip.bad{background:var(--bad-bg);color:var(--bad-ink)} .chip.na{background:var(--bg);color:var(--muted);border:1px solid var(--line)}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th,td{padding:4px 4px;text-align:left;border-bottom:1px solid var(--line);vertical-align:middle}
+th{font-weight:600;color:var(--muted)}
+td input[type=number]{width:52px}
+.mini{width:100%;display:block;border-radius:6px;background:var(--well);cursor:crosshair}
+.legend{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12.5px}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-2px}
+.refs{font-size:12px;color:var(--muted);padding-left:18px;margin:6px 0}
+.refs li{margin:3px 0}
+#busy{position:fixed;inset:0;background:rgba(10,16,20,.55);display:none;align-items:center;justify-content:center;color:#fff;z-index:20;font-weight:600}
+#busy.on{display:flex}
+#toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:7px 14px;border-radius:7px;font-size:13px;display:none;z-index:21;max-width:80vw}
+.tabpanel[hidden]{display:none}
+@media (max-width:980px){
+  .app{grid-template-columns:minmax(0,1fr);grid-template-rows:auto 62vh auto;height:auto;min-height:100%}
+  .stage{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) minmax(0,1fr);order:2}
+  .side{order:3;border-right:0}
+  nav{margin-left:0}
+}
+@media (prefers-reduced-motion: reduce){*{scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <div><h1>Septal Cartilage 3D</h1><div class="sub">Graft feasibility from CT: reformat, outline, L-strut, plan</div></div>
+  <nav role="tablist" aria-label="Sections">
+    <button role="tab" data-tab="teach" aria-selected="true">Teaching</button>
+    <button role="tab" data-tab="plan" aria-selected="false">Planning</button>
+    <button role="tab" data-tab="patient" aria-selected="false">Patient</button>
+    <button role="tab" data-tab="notes" aria-selected="false">Notes</button>
+  </nav>
+</header>
+
+<aside class="side" id="side">
+
+<!-- TEACHING -->
+<section class="tabpanel" id="tab-teach">
+  <div class="card">
+    <h2>Septal anatomy and the L-strut</h2>
+    <p class="ink">The quadrilateral cartilage is the first-choice graft source in septorhinoplasty. A dorsal and a caudal strip (the L-strut) must stay behind to hold up the nose; what is left is the harvestable cartilage.</p>
+    <div class="legend" style="margin-top:8px">
+      <span><i style="background:#7cc3dc"></i>Quadrilateral cartilage</span>
+      <span><i style="background:#d9d2bd"></i>Perpendicular plate</span>
+      <span><i style="background:#bfb8a5"></i>Vomer</span>
+      <span><i style="background:#2f9e6b"></i>Harvestable</span>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Layers</h2>
+    <div class="row"><label for="lyCart">Cartilage</label><input id="lyCart" type="checkbox" checked></div>
+    <div class="row"><label for="lyBone">Bony septum</label><input id="lyBone" type="checkbox" checked></div>
+    <div class="row"><label for="lyStrut">L-strut lines</label><input id="lyStrut" type="checkbox" checked></div>
+    <div class="row"><label for="lyHarv">Harvestable</label><input id="lyHarv" type="checkbox" checked></div>
+    <div class="row"><label for="tStrut">L-strut width</label><input id="tStrut" type="range" min="6" max="16" step="0.5" value="10"><output id="tStrutO">10 mm</output></div>
+    <div class="kv" id="tKv"></div>
+    <p class="note">Schematic only, not to scale for any patient. Load a scan in the Patient tab to measure a real septum.</p>
+  </div>
+  <div class="card">
+    <h2>What the literature fixes</h2>
+    <p class="ink">The strut is classically 10–15 mm wide. Finite-element work puts collapse risk up sharply once caudal-strut contact with the maxillary crest falls below about 45% [1]. Harvestable area after a 10 mm strut runs roughly 3.2–5.0 cm² across CT series, and falls with age as the cartilage ossifies [4,8].</p>
+  </div>
+</section>
+
+<!-- PLANNING -->
+<section class="tabpanel" id="tab-plan" hidden>
+  <div class="card">
+    <h2>Available cartilage</h2>
+    <div class="seg" role="group" aria-label="Source">
+      <button class="btn" id="srcTrace" aria-pressed="true">From traced outline</button>
+      <button class="btn" id="srcManual" aria-pressed="false">Manual entry</button>
+    </div>
+    <div id="srcTraceBox"><p class="note" id="srcTraceMsg"></p></div>
+    <div id="srcManualBox" hidden>
+      <div class="row"><label for="mArea">Area (mm²)</label><input id="mArea" type="number" min="0" step="1"></div>
+      <div class="row"><label for="mLen">Length (mm)</label><input id="mLen" type="number" min="0" step="0.5"></div>
+      <div class="row"><label for="mWid">Width (mm)</label><input id="mWid" type="number" min="0" step="0.5"></div>
+      <div class="row"><button class="btn" id="mRef">Use population mean, 461.5 mm² [16]</button></div>
+      <p class="note">Without length and width only the area budget is checked.</p>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Settings</h2>
+    <div class="row"><label for="pStrut">L-strut</label><input id="pStrut" type="range" min="6" max="16" step="0.5" value="10"><output id="pStrutO">10 mm</output></div>
+    <div class="row"><label for="pMargin">Fit margin</label><input id="pMargin" type="range" min="0" max="30" step="1" value="10"><output id="pMarginO">10%</output></div>
+    <div class="row"><label for="pContact">Crest contact</label><input id="pContact" type="number" min="0" max="100" step="1" placeholder="%"> <span class="note">caudal strut on maxillary crest</span></div>
+    <p class="note">Every graft is tested at its listed size and again enlarged by the margin. Feasible means it still fits with the margin, Borderline means it fits only at the listed size. The margin is a setting of this tool, not a published threshold.</p>
+  </div>
+  <div class="card">
+    <h2>Graft library</h2>
+    <table id="gTable"><thead><tr><th>Graft</th><th>n</th><th>L</th><th>W</th></tr></thead><tbody></tbody></table>
+    <p class="note">Sizes in mm. Spreader and columellar sizes follow [9,10]. Septal extension and tympanoplasty sizes are placeholders: set them to the sizes you use.</p>
+  </div>
+  <div class="card">
+    <h2>Plans compared</h2>
+    <p class="note">Tick the grafts each plan uses. The app places the grafts inside the harvestable region without overlap, so a plan only counts as fitting if every graft has its own space.</p>
+    <table id="planTable"><thead></thead><tbody></tbody></table>
+    <div id="suggest" style="margin-top:8px"></div>
+  </div>
+  <div class="card" id="verdictCard">
+    <h2>Selected plan</h2>
+    <div id="verdict"></div>
+  </div>
+  <div class="card">
+    <h2>Where this septum sits</h2>
+    <div id="chart"></div>
+    <p class="note">Harvestable area after a 10 mm strut, from published series. Hatched bars are references, the solid bar is this patient.</p>
+  </div>
+</section>
+
+<!-- PATIENT -->
+<section class="tabpanel" id="tab-patient" hidden>
+  <div class="card">
+    <h2>Scan</h2>
+    <div class="drop" id="drop" tabindex="0" role="button" aria-label="Choose scan files">Drop DICOM, NRRD or a ZIP here, or click to choose<br><span class="note">Everything is read in this browser and never uploaded.</span></div>
+    <input id="file" type="file" multiple hidden accept=".zip,.dcm,.nrrd,.nhdr,*/*">
+    <div class="row" id="serRow" hidden><select id="ser" aria-label="Series"></select></div>
+    <div class="kv" id="volKv" style="margin-top:6px"></div>
+    <div id="volWarn"></div>
+  </div>
+  <div class="card">
+    <h2>Midsagittal plane</h2>
+    <div class="row"><button class="btn pri" id="autoPlane">Detect plane</button><span class="note">A starting guess from left-right symmetry. Check it on the axial and coronal views.</span></div>
+    <div class="row"><label for="pShift">Shift</label><input id="pShift" type="range" min="-30" max="30" step="0.1" value="0"><output id="pShiftO">0.0 mm</output></div>
+    <div class="row"><label for="pYaw">Yaw</label><input id="pYaw" type="range" min="-25" max="25" step="0.1" value="0"><output id="pYawO">0.0°</output></div>
+    <div class="row"><label for="pRoll">Roll</label><input id="pRoll" type="range" min="-25" max="25" step="0.1" value="0"><output id="pRollO">0.0°</output></div>
+    <canvas class="mini" id="ax" width="360" height="240" aria-label="Axial slice with plane"></canvas>
+    <canvas class="mini" id="co" width="360" height="240" style="margin-top:6px" aria-label="Coronal slice with plane"></canvas>
+    <p class="note">Click either view to slide the plane through that point.</p>
+  </div>
+  <div class="card">
+    <h2>Septum analysis</h2>
+    <p class="note">Works on the plane above. Align the plane to the septum first, then let the app suggest the cartilage outline and landmarks. Check and edit the result.</p>
+    <div class="row"><button class="btn pri" id="alignSep">Align plane to septum</button><button class="btn pri" id="sugOutline">Suggest outline</button></div>
+    <div id="sepRes" style="margin-top:6px"></div>
+    <div class="row"><label for="sepOnly">Outline only</label><input id="sepOnly" type="checkbox" checked> <span class="note">show the sheet inside the outline in 3D</span></div>
+    <div class="row"><label for="sepColor">3D colour</label><select id="sepColor"><option value="dev">Deviation from plane</option><option value="thick">Septal thickness</option><option value="soft">Soft or bony</option><option value="gray">Thickness, grayscale</option></select></div>
+  </div>
+  <div class="card">
+    <h2>Image</h2>
+    <div class="row"><label for="wL">Level</label><input id="wL" type="range" min="-300" max="1200" step="5" value="150"><output id="wLO">150</output></div>
+    <div class="row"><label for="wW">Window</label><input id="wW" type="range" min="50" max="3000" step="10" value="800"><output id="wWO">800</output></div>
+    <div class="row"><label for="bwOv">Print overlay</label><input id="bwOv" type="checkbox"> <span class="note">black and white, hatched</span></div>
+    <div class="row"><label for="slab">Slab</label><input id="slab" type="range" min="0" max="6" step="0.5" value="0"><output id="slabO">0 mm</output></div>
+  </div>
+  <div class="card">
+    <h2>Measure</h2>
+    <div class="seg" role="group" aria-label="Tool">
+      <button class="btn" data-tool="pan" aria-pressed="true">Pan</button>
+      <button class="btn" data-tool="trace" aria-pressed="false">Outline</button>
+      <button class="btn" data-tool="lm" aria-pressed="false">Landmarks</button>
+      <button class="btn" data-tool="ruler" aria-pressed="false">Ruler</button>
+      <button class="btn" data-tool="angle" aria-pressed="false">Angle</button>
+      <button class="btn" data-tool="hu" aria-pressed="false">HU</button>
+      <button class="btn" data-tool="thick" aria-pressed="false">Thickness</button>
+    </div>
+    <div id="toolHelp" class="note" style="margin-top:6px"></div>
+    <div class="row" id="lmRow" hidden>
+      <div class="seg" role="group" aria-label="Landmark">
+        <button class="btn" data-lm="K" aria-pressed="true">K</button>
+        <button class="btn" data-lm="ASA" aria-pressed="false">ASA</button>
+        <button class="btn" data-lm="ANS" aria-pressed="false">ANS</button>
+      </div>
+      <span class="note" id="lmName"></span>
+    </div>
+    <div class="row">
+      <button class="btn" id="closeOutline">Close outline</button>
+      <button class="btn" id="undo">Undo</button>
+      <button class="btn" id="clearAll">Clear</button>
+    </div>
+    <div id="results" style="margin-top:8px"></div>
+    <div class="row"><button class="btn" id="copyRes">Copy summary</button></div>
+  </div>
+  <div class="card">
+    <h2>3D bone</h2>
+    <div class="row"><label for="boneHU">Threshold</label><input id="boneHU" type="range" min="150" max="700" step="10" value="300"><output id="boneHUO">300 HU</output></div>
+    <p class="note">Releasing the slider rebuilds the surface. Use the buttons above the 3D view to cut at the plane and change viewpoint.</p>
+  </div>
+</section>
+
+<!-- NOTES -->
+<section class="tabpanel" id="tab-notes" hidden>
+  <div class="card">
+    <h2>What the app does</h2>
+    <p class="ink"><b>Align plane.</b> The app samples the CT across the plane at every point and finds the thin tissue sheet with air on both sides (below −450 HU, 0.8 to 9 mm thick) closest to the plane. It fits a plane to those sheets, ignoring outliers, in three passes with a tightening gate of 12, 6 and 4 mm.</p>
+    <p class="ink"><b>Suggest outline.</b> The sheet counts as soft, meaning cartilage-like, where its highest HU is under 230. The largest soft region, cleaned by opening, becomes the outline. K is the top vertex, ASA the most anterior vertex above the lowest 15% of the outline, and ANS the lowest vertex at least a quarter of the width behind ASA. These are starting points to check and drag.</p>
+    <p class="ink"><b>Measurements.</b> Areas are projected on the plane; the curved-septum area adds the local slope of the sheet. Thickness includes mucosa and partial volume. Ossified share is the part of the outline whose sheet reaches 230 HU or more. Deviation is the offset of the sheet from the plane within the 5 mm gate.</p>
+    <p class="ink"><b>L-strut.</b> The dorsal strut runs K to ASA and the caudal strut ASA to ANS. Each line is moved inward by the strut width and the outline is cut by those two lines; what is left is the harvestable cartilage.</p>
+    <p class="ink"><b>Plans.</b> Grafts are rectangles tried at 7.5° steps on a 0.5 mm grid with about 1 mm between them. A plan fits only if every graft has its own space. Feasible means it still fits with the margin added, Borderline means it fits only at the listed sizes. The suggestion picks, among plans that fit, the one with the most grafts and then the least cartilage used.</p>
+  </div>
+  <div class="card">
+    <h2>Limits</h2>
+    <p class="ink">This is a research and teaching tool, not a medical device. Every measurement and suggestion needs a clinician's check against the images.</p>
+    <p class="ink">The suggested outline is conservative. On four NasalSeg cases it overlapped an outline derived from the dataset's nasal-cavity labels by 0.4 to 0.7 (intersection over union) and was usually smaller, while the aligned plane was within 1.5° of the label-based plane. Septal cartilage is thin and close in density to mucosa, so always check and edit.</p>
+    <p class="ink">With 1.5 mm slices the vertical resolution of the reformat is 1.5 mm and thickness is only approximate. Septal extension and tympanoplasty sizes are placeholders, and the fit margin is a setting of this tool. Only axial scans aligned to the scanner axes are read, and DICOM must be uncompressed.</p>
+  </div>
+  <div class="card">
+    <h2>Sources</h2>
+    <ol class="refs">
+      <li>[1] Lee JS, et al. Redefining the septal L-strut to prevent collapse. PLoS One 2016;11(4):e0153056.</li>
+      <li>[4] Kim JH, et al. Harvestable septal cartilage in Koreans on 3D facial CT. Arch Plast Surg 2014;41(2):163-170.</li>
+      <li>[8] Rendón-Medina MA, et al. Cir Plast 2025;35(3):107-112.</li>
+      <li>[9] Goffart Y, et al. Free spreader grafts in rhinoplasty. Eur J Plast Surg 2015;38(5):355-362.</li>
+      <li>[10] Gandy JR, et al. Columellar strut dimensions by finite element analysis. JAMA Facial Plast Surg 2016;18(3):194-200.</li>
+      <li>[16] Nguyen CD, et al. Optimizing the septal donor site in Asian rhinoplasty. Aesthetic Plast Surg 2026.</li>
+      <li>[18] Kim JS, et al. Intraoperative measurements of harvestable septal cartilage. Ann Plast Surg 2010;65(6):519-523.</li>
+      <li>[25] Park JH, Jin HR. Autologous costal cartilage in Asian rhinoplasty. Plast Reconstr Surg 2012;130(6):1338-1348.</li>
+      <li>[26] Varadharajan K, et al. Costal cartilage complications: a systematic review. Aesthet Surg J 2015;35(6):644-652.</li>
+    </ol>
+    <p class="note">Pipeline tested on the NasalSeg CT set (Zhang et al., Sci Data 2024). That set has no septal labels.</p>
+  </div>
+</section>
+</aside>
+
+<main class="stage">
+  <div class="pane">
+    <div class="pane-h"><b id="paneTitle">Schematic</b><span class="sp"></span><span id="paneHint" style="opacity:.75"></span></div>
+    <div class="pane-b" id="sagHost"><canvas id="sag"></canvas></div>
+  </div>
+  <div class="pane">
+    <div class="pane-h"><b>3D</b><span class="sp"></span>
+      <label><input type="checkbox" id="cutPlane"> Cut at plane</label>
+      <label><input type="checkbox" id="showPlane" checked> Reformat</label>
+      <label><input type="checkbox" id="ly3bone" checked> Bone</label><label><input type="checkbox" id="ly3sept" checked> Septum</label><label><input type="checkbox" id="ly3plan" checked> Plan</label>
+      <input type="range" id="boneOp" min="0.1" max="1" step="0.05" value="0.85" title="Bone opacity" aria-label="Bone opacity" style="width:70px">
+      <button data-view="obl">Oblique</button><button data-view="front">Front</button><button data-view="left">Left</button><button data-view="right">Right</button><button data-view="top">Top</button>
+    </div>
+    <div class="pane-b" id="three"></div>
+  </div>
+</main>
+</div>
+<div id="busy"><span id="busyMsg">Working…</span></div>
+<div id="toast" role="status"></div>
+
+<script src="vendor/three.min.js"></script>
+<script src="vendor/OrbitControls.js"></script>
+<script src="vendor/jszip.min.js"></script>
+<script>
+(()=>{
+'use strict';
+const $=id=>document.getElementById(id);
+const D2R=Math.PI/180;
+const f1=x=>(Math.round(x*10)/10).toFixed(1);
+const f0=x=>String(Math.round(x));
+
+/* ---------------- state ---------------- */
+const S={
+  vol:null, tab:'teach', tool:'pan', lmSel:'K',
+  plane:{x0:0,yc:0,zc:0,yaw:0,roll:0,x0auto:0},
+  view:{uc:0,vc:0,s:6},
+  win:{l:150,w:800}, slab:0,
+  pts:[], closed:false, lm:{K:null,ASA:null,ANS:null}, ruler:[],
+  snap:null, an:null,
+  strutW:10, margin:10, pack:70, contact:'', src:'trace', manual:{area:'',len:'',wid:''},
+  grafts:[
+    {id:'spr',name:'Spreader grafts',short:'SP',n:2,L:25,W:3},
+    {id:'col',name:'Columellar strut',short:'CS',n:1,L:15,W:4},
+    {id:'seg',name:'Septal extension graft',short:'SE',n:1,L:25,W:8},
+    {id:'tym',name:'Tympanoplasty graft',short:'TY',n:1,L:10,W:10}
+  ],
+  plans:[
+    {id:'A',name:'Spreaders',items:['spr']},
+    {id:'B',name:'Columellar strut',items:['col']},
+    {id:'C',name:'Spreaders + columellar',items:['spr','col']},
+    {id:'D',name:'Septal extension',items:['seg']},
+    {id:'E',name:'Spreaders + septal extension',items:['spr','seg']}
+  ],
+  planSel:'C', sel:null, evals:[],
+  bw:false, ly3:{bone:true,sept:true,plan:true}, sm:null, annos:[], pending:[], boneHU:300, cut:false, showPlane:true, ly:{cart:true,bone:true,strut:true,harv:true},
+  catalog:[]
+};
+window.__S=S;
+
+/* ---------------- ui helpers ---------------- */
+function busy(msg){ if(msg){$('busyMsg').textContent=msg;$('busy').classList.add('on');} else $('busy').classList.remove('on'); }
+const tick=()=>new Promise(r=>setTimeout(r,30));
+let toastT=0;
+function toast(msg){ const t=$('toast'); t.textContent=msg; t.style.display='block'; clearTimeout(toastT); toastT=setTimeout(()=>t.style.display='none',3800); }
+
+/* ---------------- geometry (2D) ---------------- */
+function polyArea(p){ let a=0; for(let i=0;i<p.length;i++){const q=p[(i+1)%p.length]; a+=p[i][0]*q[1]-q[0]*p[i][1];} return Math.abs(a)/2; }
+function polyCentroid(p){ let a=0,cx=0,cy=0; for(let i=0;i<p.length;i++){const q=p[(i+1)%p.length]; const c=p[i][0]*q[1]-q[0]*p[i][1]; a+=c; cx+=(p[i][0]+q[0])*c; cy+=(p[i][1]+q[1])*c;} if(Math.abs(a)<1e-9){ let sx=0,sy=0; p.forEach(v=>{sx+=v[0];sy+=v[1];}); return [sx/p.length,sy/p.length]; } return [cx/(3*a),cy/(3*a)]; }
+function strutNormal(a,b,cen){ const dx=b[0]-a[0],dy=b[1]-a[1]; const L=Math.hypot(dx,dy)||1; let nx=-dy/L,ny=dx/L; if((cen[0]-a[0])*nx+(cen[1]-a[1])*ny<0){nx=-nx;ny=-ny;} return [nx,ny]; }
+function clipHalf(poly,a,nrm,w){
+  const out=[],n=poly.length;
+  for(let i=0;i<n;i++){
+    const p=poly[i],q=poly[(i+1)%n];
+    const dp=(p[0]-a[0])*nrm[0]+(p[1]-a[1])*nrm[1]-w, dq=(q[0]-a[0])*nrm[0]+(q[1]-a[1])*nrm[1]-w;
+    if(dp>=0) out.push(p);
+    if((dp>=0)!==(dq>=0)){ const t=dp/(dp-dq); out.push([p[0]+t*(q[0]-p[0]),p[1]+t*(q[1]-p[1])]); }
+  }
+  return out;
+}
+function edgeLenOnLine(poly,a,nrm,w){
+  let L=0; const n=poly.length;
+  for(let i=0;i<n;i++){ const p=poly[i],q=poly[(i+1)%n];
+    const dp=(p[0]-a[0])*nrm[0]+(p[1]-a[1])*nrm[1]-w, dq=(q[0]-a[0])*nrm[0]+(q[1]-a[1])*nrm[1]-w;
+    if(Math.abs(dp)<1e-6&&Math.abs(dq)<1e-6) L+=Math.hypot(q[0]-p[0],q[1]-p[1]); }
+  return L;
+}
+function analysePoly(poly,K,ASA,ANS,w){
+  const cen=polyCentroid(poly);
+  const nD=strutNormal(K,ASA,cen), nC=strutNormal(ASA,ANS,cen);
+  let h=clipHalf(poly,K,nD,w); if(h.length>=3) h=clipHalf(h,ASA,nC,w);
+  const total=polyArea(poly), harv=h.length>=3?polyArea(h):0;
+  let fmax=0,fmin=Infinity;
+  if(h.length>=3){ for(let t=0;t<180;t+=1){ const c=Math.cos(t*D2R),s=Math.sin(t*D2R); let mn=1e9,mx=-1e9; for(const p of h){const d=p[0]*c+p[1]*s; if(d<mn)mn=d; if(d>mx)mx=d;} const e=mx-mn; if(e>fmax)fmax=e; if(e<fmin)fmin=e; } } else fmin=0;
+  return {total,harv,poly:h.length>=3?h:[],nD,nC,
+    dorsal:h.length>=3?edgeLenOnLine(h,K,nD,w):0, caudal:h.length>=3?edgeLenOnLine(h,ASA,nC,w):0,
+    feretMax:fmax, feretMin:fmin, K,ASA,ANS,w};
+}
+function pip(pt,poly){ let c=false; for(let i=0,j=poly.length-1;i<poly.length;j=i++){ const a=poly[i],b=poly[j]; if(((a[1]>pt[1])!==(b[1]>pt[1]))&&(pt[0]<(b[0]-a[0])*(pt[1]-a[1])/(b[1]-a[1])+a[0])) c=!c; } return c; }
+function segX(a,b,c,d){ const o=(p,q,r)=>(q[0]-p[0])*(r[1]-p[1])-(q[1]-p[1])*(r[0]-p[0]); const e=1e-9;
+  const o1=o(a,b,c),o2=o(a,b,d),o3=o(c,d,a),o4=o(c,d,b);
+  return ((o1>e&&o2<-e)||(o1<-e&&o2>e))&&((o3>e&&o4<-e)||(o3<-e&&o4>e)); }
+function rectInside(poly,c){ for(const p of c) if(!pip(p,poly)) return false;
+  for(let i=0;i<4;i++){ const a=c[i],b=c[(i+1)%4]; for(let j=0;j<poly.length;j++){ if(segX(a,b,poly[j],poly[(j+1)%poly.length])) return false; } } return true; }
+function fitsRect(poly,L,W){
+  if(!poly||poly.length<3) return false;
+  let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9; poly.forEach(p=>{x0=Math.min(x0,p[0]);x1=Math.max(x1,p[0]);y0=Math.min(y0,p[1]);y1=Math.max(y1,p[1]);});
+  if(Math.max(L,W)>Math.hypot(x1-x0,y1-y0)+1e-6) return false;
+  const hl=L/2,hw=W/2;
+  for(let th=0;th<180;th+=5){ const c=Math.cos(th*D2R),s=Math.sin(th*D2R);
+    for(let cx=x0;cx<=x1;cx+=1) for(let cy=y0;cy<=y1;cy+=1){
+      if(!pip([cx,cy],poly)) continue;
+      const cor=[[-hl,-hw],[hl,-hw],[hl,hw],[-hl,hw]].map(q=>[cx+q[0]*c-q[1]*s,cy+q[0]*s+q[1]*c]);
+      if(rectInside(poly,cor)) return true; } }
+  return false;
+}
+
+/* ---------------- schematic septum ---------------- */
+const SC=1.2;
+const SCH={
+  cart:[[-18,12],[12,34],[22,27],[27,9],[23,0],[0,0]].map(p=>[p[0]*SC,p[1]*SC]),
+  ppe:[[12,34],[40,46],[56,22],[27,9],[22,27]].map(p=>[p[0]*SC,p[1]*SC]),
+  vomer:[[23,0],[27,9],[56,22],[64,6],[52,-2],[30,-3]].map(p=>[p[0]*SC,p[1]*SC]),
+  K:[12*SC,34*SC],ASA:[-18*SC,12*SC],ANS:[0,0]
+};
+function schAnalysis(){ return analysePoly(SCH.cart,SCH.K,SCH.ASA,SCH.ANS,S.strutW); }
+
+/* ---------------- plane basis ---------------- */
+function basis(){
+  const a=S.plane.yaw*D2R,b=S.plane.roll*D2R,cz=Math.cos(a),sz=Math.sin(a),cb=Math.cos(b),sb=Math.sin(b);
+  const R=v=>{ const x1=v[0]*cb+v[2]*sb,y1=v[1],z1=-v[0]*sb+v[2]*cb; return [x1*cz-y1*sz,x1*sz+y1*cz,z1]; };
+  return {n:R([1,0,0]),u:R([0,1,0]),v:R([0,0,1]),c:[S.plane.x0,S.plane.yc,S.plane.zc]};
+}
+const dot=(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
+const toUV=(P,B)=>{ const r=[P[0]-B.c[0],P[1]-B.c[1],P[2]-B.c[2]]; return [dot(r,B.u),dot(r,B.v)]; };
+const fromUV=(u,v,B)=>[B.c[0]+u*B.u[0]+v*B.v[0],B.c[1]+u*B.u[1]+v*B.v[1],B.c[2]+u*B.u[2]+v*B.v[2]];
+const offPlane=(P,B)=>dot([P[0]-B.c[0],P[1]-B.c[1],P[2]-B.c[2]],B.n);
+
+/* ---------------- volume ---------------- */
+function sampleVol(v,x,y,z){
+  const fx=(x-v.ox)/v.sx,fy=(y-v.oy)/v.sy,fz=(z-v.oz)/v.sz;
+  if(fx<0||fy<0||fz<0||fx>v.nx-1||fy>v.ny-1||fz>v.nz-1) return -1024;
+  let i=fx|0,j=fy|0,k=fz|0; if(i>=v.nx-1)i=v.nx-2; if(j>=v.ny-1)j=v.ny-2; if(k>=v.nz-1)k=v.nz-2; if(i<0)i=0; if(j<0)j=0; if(k<0)k=0;
+  const tx=fx-i,ty=fy-j,tz=fz-k,d=v.data,nx=v.nx,sl=v.nx*v.ny,b=i+nx*j+sl*k;
+  const c00=d[b]*(1-tx)+d[b+1]*tx, c10=d[b+nx]*(1-tx)+d[b+nx+1]*tx, c01=d[b+sl]*(1-tx)+d[b+sl+1]*tx, c11=d[b+nx+sl]*(1-tx)+d[b+nx+sl+1]*tx;
+  return (c00*(1-ty)+c10*ty)*(1-tz)+(c01*(1-ty)+c11*ty)*tz;
+}
+
+/* ---------------- DICOM ---------------- */
+const DT={0x0020000E:'UI',0x00200013:'IS',0x00200032:'DS',0x00200037:'DS',0x00280010:'US',0x00280011:'US',0x00280030:'DS',0x00180050:'DS',0x00280100:'US',0x00280101:'US',0x00280103:'US',0x00281052:'DS',0x00281053:'DS',0x0008103E:'LO',0x00080060:'CS',0x00020010:'UI'};
+const LONGVR=/^(OB|OW|OF|SQ|UT|UN|OD|OL|UC|UR|SV|UV)$/;
+function parseDicom(buf){
+  const dv=new DataView(buf),n=buf.byteLength; let p=0;
+  if(n>132&&dv.getUint32(128,false)===0x4449434D) p=132;
+  else if(!(n>8&&(dv.getUint16(0,true)===8||dv.getUint16(0,true)===2))) return null;
+  let expl=true; const T={}; let px=null;
+  const hdr=q=>{
+    const g=dv.getUint16(q,true),e=dv.getUint16(q+2,true),tag=((g<<16)|e)>>>0;
+    if(g===0xFFFE) return {tag,vr:'',len:dv.getUint32(q+4,true),h:8};
+    if(expl||g===2){ const vr=String.fromCharCode(dv.getUint8(q+4),dv.getUint8(q+5)); if(LONGVR.test(vr)) return {tag,vr,len:dv.getUint32(q+8,true),h:12}; return {tag,vr,len:dv.getUint16(q+6,true),h:8}; }
+    return {tag,vr:'',len:dv.getUint32(q+4,true),h:8};
+  };
+  const skipSeq=(q,len)=>{
+    if(len!==0xFFFFFFFF) return q+len;
+    while(q+8<=n){ const h=hdr(q);
+      if(h.tag===0xFFFEE0DD) return q+8;
+      if(h.tag!==0xFFFEE000) return q;
+      q+=8;
+      if(h.len!==0xFFFFFFFF){ q+=h.len; continue; }
+      while(q+8<=n){ const e=hdr(q); if(e.tag===0xFFFEE00D){q+=8;break;} q+=e.h; q=(e.vr==='SQ'||e.len===0xFFFFFFFF)?skipSeq(q,e.len):q+e.len; }
+    }
+    return q;
+  };
+  const str=(q,l)=>{ let s=''; for(let i=0;i<l;i++){const c=dv.getUint8(q+i); if(c)s+=String.fromCharCode(c);} return s.trim(); };
+  while(p+8<=n){
+    const h=hdr(p); if(h.tag===0x7FE00010){ px={off:p+h.h,len:h.len}; break; }
+    const vp=p+h.h;
+    if(h.len===0xFFFFFFFF||h.vr==='SQ'){ p=skipSeq(vp,h.len); continue; }
+    const t=DT[h.tag];
+    if(t){ if(t==='US') T[h.tag]=dv.getUint16(vp,true); else { const s=str(vp,h.len); T[h.tag]=(t==='DS'||t==='IS')?s.split('\\').map(parseFloat):s; } }
+    if(h.tag===0x00020010) expl=(T[0x00020010]!=='1.2.840.10008.1.2');
+    p=vp+h.len;
+  }
+  if(!px||T[0x00280010]==null) return null;
+  T.px=px; return T;
+}
+function seriesToVolume(items){
+  const T0=items[0].T; const ts=T0[0x00020010]||'1.2.840.10008.1.2.1';
+  if(ts!=='1.2.840.10008.1.2'&&ts!=='1.2.840.10008.1.2.1') throw new Error('Compressed DICOM ('+ts+') is not supported. Export uncompressed DICOM or NRRD.');
+  if(items.length<8) throw new Error('This series has only '+items.length+' images, too few for a reformat.');
+  const iop=T0[0x00200037]; if(!iop||iop.length<6) throw new Error('Missing image orientation.');
+  const rd=iop.slice(0,3),cd=iop.slice(3,6);
+  if(Math.abs(rd[0])<0.98||Math.abs(cd[1])<0.98) throw new Error('Only axial scans aligned to the scanner axes are read. Reformat the scan to axial first.');
+  items.forEach(it=>{ if(!it.T[0x00200032]) throw new Error('Missing image position.'); });
+  items.sort((a,b)=>a.T[0x00200032][2]-b.T[0x00200032][2]);
+  const nx=T0[0x00280011],ny=T0[0x00280010],nz=items.length;
+  const ps=T0[0x00280030]||[1,1]; const sy=ps[0],sx=ps[1];
+  const zs=items.map(i=>i.T[0x00200032][2]); const dz=[]; for(let i=1;i<nz;i++)dz.push(zs[i]-zs[i-1]); dz.sort((a,b)=>a-b); const sz=dz[dz.length>>1]||1;
+  const warns=[]; if(dz[dz.length-1]-dz[0]>0.05*sz) warns.push('Slice spacing is uneven; the reformat assumes '+f1(sz)+' mm.');
+  if(sz>2) warns.push('Slice spacing is '+f1(sz)+' mm. Thin cartilage will look coarse; 1 mm or thinner is better.');
+  const flipX=rd[0]<0,flipY=cd[1]<0,p0=items[0].T[0x00200032];
+  const ox=flipX?p0[0]-(nx-1)*sx:p0[0], oy=flipY?p0[1]-(ny-1)*sy:p0[1], oz=zs[0];
+  const data=new Int16Array(nx*ny*nz);
+  items.forEach((it,k)=>{
+    const T=it.T,bits=T[0x00280100]||16; if(bits!==16) throw new Error('Only 16-bit images are read.');
+    const signed=T[0x00280103]===1, sl=(T[0x00281053]||[1])[0], ic=(T[0x00281052]||[0])[0];
+    const src=signed?new Int16Array(it.buf.slice(T.px.off,T.px.off+nx*ny*2)):new Uint16Array(it.buf.slice(T.px.off,T.px.off+nx*ny*2));
+    for(let j=0;j<ny;j++){ const jj=flipY?ny-1-j:j; for(let i=0;i<nx;i++){ const ii=flipX?nx-1-i:i; let v=src[j*nx+i]*sl+ic; if(v>32000)v=32000; if(v<-32000)v=-32000; data[ii+nx*(jj+ny*k)]=v; } }
+  });
+  return {data,nx,ny,nz,sx,sy,sz,ox,oy,oz,warns};
+}
+
+/* ---------------- NRRD ---------------- */
+async function parseNrrd(buf){
+  const u8=new Uint8Array(buf); let e=0; while(e<u8.length-1&&!(u8[e]===10&&u8[e+1]===10)) e++;
+  if(e>=u8.length-1) throw new Error('Not a readable NRRD file.');
+  const head=new TextDecoder().decode(u8.subarray(0,e)).split(/\r?\n/);
+  if(!/^NRRD/.test(head[0])) throw new Error('Not a NRRD file.');
+  const h={}; head.slice(1).forEach(l=>{ if(l.startsWith('#'))return; const m=l.match(/^([^:=]+?)\s*:\s*=?\s*(.*)$/); if(m) h[m[1].trim().toLowerCase()]=m[2].trim(); });
+  if(h['data file']||h['datafile']) throw new Error('Detached NRRD (.nhdr) is not supported. Use a single .nrrd file.');
+  const dim=+h.dimension; if(dim!==3) throw new Error('Only 3D NRRD volumes are read.');
+  const sizes=h.sizes.split(/\s+/).map(Number); const [nx,ny,nz]=sizes;
+  const tp=(h.type||'').toLowerCase().replace(/\s+/g,' ');
+  const TY={'short':Int16Array,'int16':Int16Array,'signed short':Int16Array,'int16_t':Int16Array,'signed short int':Int16Array,'ushort':Uint16Array,'uint16':Uint16Array,'unsigned short':Uint16Array,'uint16_t':Uint16Array,'unsigned short int':Uint16Array,'uchar':Uint8Array,'uint8':Uint8Array,'unsigned char':Uint8Array,'uint8_t':Uint8Array,'int8':Int8Array,'signed char':Int8Array,'int':Int32Array,'int32':Int32Array,'signed int':Int32Array,'float':Float32Array,'double':Float64Array};
+  const Ty=TY[tp]; if(!Ty) throw new Error('Unsupported NRRD data type: '+h.type);
+  let raw=buf.slice(e+2); const enc=(h.encoding||'raw').toLowerCase();
+  if(enc==='gzip'||enc==='gz'){ const ds=new DecompressionStream('gzip'); raw=await new Response(new Blob([raw]).stream().pipeThrough(ds)).arrayBuffer(); }
+  else if(enc!=='raw') throw new Error('Unsupported NRRD encoding: '+h.encoding);
+  let arr=new Ty(raw.byteLength>=nx*ny*nz*Ty.BYTES_PER_ELEMENT?raw.slice(0,nx*ny*nz*Ty.BYTES_PER_ELEMENT):raw);
+  if((h.endian||'little')==='big'&&Ty.BYTES_PER_ELEMENT>1){ const dv=new DataView(arr.buffer); const sw=new Ty(arr.length); const m={2:'Int16',4:'Int32'}; for(let i=0;i<arr.length;i++){ sw[i]=Ty===Int16Array?dv.getInt16(i*2,false):Ty===Uint16Array?dv.getUint16(i*2,false):Ty===Int32Array?dv.getInt32(i*4,false):Ty===Float32Array?dv.getFloat32(i*4,false):dv.getFloat64(i*8,false);} arr=sw; }
+  const vec=s=>(s.match(/\(([^)]*)\)/g)||[]).map(t=>t.slice(1,-1).split(',').map(Number));
+  let dirs=vec(h['space directions']||''); let org=vec(h['space origin']||'')[0]||[0,0,0];
+  if(dirs.length!==3){ const sp=(h.spacings||'1 1 1').split(/\s+/).map(Number); dirs=[[sp[0],0,0],[0,sp[1],0],[0,0,sp[2]]]; }
+  const space=(h.space||'left-posterior-superior').toLowerCase();
+  let fx=1,fy=1; if(/right-anterior|^ras$/.test(space)){fx=-1;fy=-1;} else if(/left-anterior|^las$/.test(space)){fy=-1;}
+  dirs=dirs.map(d=>[d[0]*fx,d[1]*fy,d[2]]); org=[org[0]*fx,org[1]*fy,org[2]];
+  const sp=[],sg=[];
+  for(let a=0;a<3;a++){ let m=0; for(let c=1;c<3;c++) if(Math.abs(dirs[a][c])>Math.abs(dirs[a][m])) m=c;
+    if(m!==a||Math.hypot(...dirs[a])-Math.abs(dirs[a][a])>0.02*Math.hypot(...dirs[a])) throw new Error('Only axial volumes aligned to the scanner axes are read.');
+    sp[a]=Math.abs(dirs[a][a]); sg[a]=Math.sign(dirs[a][a]); }
+  const data=new Int16Array(nx*ny*nz); for(let i=0;i<data.length;i++){ let v=arr[i]; data[i]=v>32000?32000:v<-32000?-32000:v; }
+  const o=[org[0]-(sg[0]<0?(nx-1)*sp[0]:0),org[1]-(sg[1]<0?(ny-1)*sp[1]:0),org[2]-(sg[2]<0?(nz-1)*sp[2]:0)];
+  let out=data;
+  if(sg[0]<0||sg[1]<0||sg[2]<0){ out=new Int16Array(data.length); for(let k=0;k<nz;k++)for(let j=0;j<ny;j++)for(let i=0;i<nx;i++){ const ii=sg[0]<0?nx-1-i:i,jj=sg[1]<0?ny-1-j:j,kk=sg[2]<0?nz-1-k:k; out[ii+nx*(jj+ny*kk)]=data[i+nx*(j+ny*k)]; } }
+  const warns=[]; if(sp[2]>2) warns.push('Slice spacing is '+f1(sp[2])+' mm. Thin cartilage will look coarse.');
+  return {data:out,nx,ny,nz,sx:sp[0],sy:sp[1],sz:sp[2],ox:o[0],oy:o[1],oz:o[2],warns};
+}
+
+/* ---------------- file intake ---------------- */
+async function handleFiles(files){
+  busy('Reading files…'); await tick();
+  try{
+    S.catalog=[]; const dcm=[]; let ndcmFail=0;
+    for(const f of files){
+      const low=f.name.toLowerCase();
+      if(low.endsWith('.zip')){
+        const z=await JSZip.loadAsync(f);
+        const names=Object.keys(z.files).filter(n=>!z.files[n].dir&&!/__MACOSX|\.DS_Store/.test(n));
+        for(const n of names){
+          if(/\.nrrd$/i.test(n)){ if(/label|_seg/i.test(n)) continue; S.catalog.push({label:n.split('/').pop(),load:async()=>parseNrrd(await z.files[n].async('arraybuffer'))}); }
+          else if(!/\.(txt|md|json|csv|xml|pdf|jpg|png)$/i.test(n)){ const b=await z.files[n].async('arraybuffer'); const T=parseDicomSafe(b); if(T) dcm.push({T,buf:b}); else ndcmFail++; }
+        }
+      } else if(/\.nrrd$/i.test(low)){ S.catalog.push({label:f.name,load:async()=>parseNrrd(await f.arrayBuffer())}); }
+      else { const b=await f.arrayBuffer(); const T=parseDicomSafe(b); if(T) dcm.push({T,buf:b}); else ndcmFail++; }
+    }
+    if(dcm.length){
+      const g={}; dcm.forEach(d=>{ const k=d.T[0x0020000E]||'series'; (g[k]=g[k]||[]).push(d); });
+      Object.values(g).sort((a,b)=>b.length-a.length).forEach(items=>{
+        const T=items[0].T; const th=T[0x00180050]?f1(T[0x00180050][0])+' mm':'?';
+        S.catalog.push({label:(T[0x0008103E]||'Series')+' · '+items.length+' images · '+th,load:async()=>seriesToVolume(items)});
+      });
+    }
+    if(!S.catalog.length) throw new Error('No readable CT found. Supported: uncompressed DICOM and NRRD, loose or in a ZIP.');
+    const sel=$('ser'); sel.innerHTML=''; S.catalog.forEach((c,i)=>{ const o=document.createElement('option'); o.value=i; o.textContent=c.label; sel.appendChild(o); });
+    $('serRow').hidden=S.catalog.length<2;
+    await loadCatalog(0);
+  }catch(err){ busy(); toast(err.message||String(err)); $('volWarn').innerHTML='<div class="warn">'+(err.message||err)+'</div>'; return; }
+  busy();
+}
+function parseDicomSafe(b){ try{ return parseDicom(b); }catch(e){ return null; } }
+async function loadCatalog(i){
+  busy('Loading volume…'); await tick();
+  try{ const v=await S.catalog[i].load(); await setVolume(v,S.catalog[i].label); }
+  catch(err){ busy(); toast(err.message||String(err)); $('volWarn').innerHTML='<div class="warn">'+(err.message||err)+'</div>'; return; }
+  busy();
+}
+
+/* ---------------- volume setup + midplane ---------------- */
+async function setVolume(v,name){
+  S.vol=v; v.name=name;
+  S.pts=[];S.closed=false;S.lm={K:null,ASA:null,ANS:null};S.ruler=[];S.snap=null;S.an=null;S.sm=null;S.annos=[];S.pending=[];
+  const ext=[v.nx*v.sx,v.ny*v.sy,v.nz*v.sz];
+  $('volKv').innerHTML=`<span>Matrix</span><span>${v.nx} × ${v.ny} × ${v.nz}</span><span>Voxel</span><span>${v.sx.toFixed(2)} × ${v.sy.toFixed(2)} × ${v.sz.toFixed(2)} mm</span><span>Extent</span><span>${f0(ext[0])} × ${f0(ext[1])} × ${f0(ext[2])} mm</span>`;
+  $('volWarn').innerHTML=(v.warns||[]).map(w=>`<div class="warn">${w}</div>`).join('');
+  busy('Finding midsagittal plane…'); await tick();
+  autoPlane();
+  busy('Building 3D surface…'); await tick();
+  buildBone();
+  setTab(S.tab==='teach'?'patient':S.tab); syncUI();
+  fitCamera(); dirtyImg=true; draw2D(); drawMinis(); updateResults(); updateOverlays3D();
+}
+function autoPlane(){
+  const v=S.vol; if(!v) return;
+  const st=[Math.max(1,Math.round(2.5/v.sx)),Math.max(1,Math.round(2.5/v.sy)),Math.max(1,Math.round(2.5/v.sz))];
+  let pts=[]; const thr=-300;
+  for(let k=0;k<v.nz;k+=st[2])for(let j=0;j<v.ny;j+=st[1])for(let i=0;i<v.nx;i+=st[0]) if(v.data[i+v.nx*(j+v.ny*k)]>thr) pts.push([v.ox+i*v.sx,v.oy+j*v.sy,v.oz+k*v.sz]);
+  if(pts.length>30000){ const m=Math.ceil(pts.length/30000); pts=pts.filter((_,i)=>i%m===0); }
+  if(pts.length<50){ toast('Too little tissue in this scan to find a plane.'); return; }
+  let cx=0,cy=0,cz=0; pts.forEach(p=>{cx+=p[0];cy+=p[1];cz+=p[2];}); cx/=pts.length;cy/=pts.length;cz/=pts.length;
+  const score=(x0,yaw)=>{
+    const a=yaw*D2R,nx=Math.cos(a),ny=Math.sin(a); let hit=0;
+    for(let q=0;q<pts.length;q++){ const p=pts[q]; const d=(p[0]-x0)*nx+(p[1]-cy)*ny; const x=p[0]-2*d*nx,y=p[1]-2*d*ny,z=p[2];
+      const i=Math.round((x-v.ox)/v.sx),j=Math.round((y-v.oy)/v.sy),k=Math.round((z-v.oz)/v.sz);
+      if(i>=0&&j>=0&&k>=0&&i<v.nx&&j<v.ny&&k<v.nz&&v.data[i+v.nx*(j+v.ny*k)]>thr) hit++; }
+    return hit/pts.length;
+  };
+  let best={s:-1,x:cx,yaw:0};
+  for(let yaw=-15;yaw<=15.01;yaw+=1.5)for(let x=cx-25;x<=cx+25.01;x+=1){ const s=score(x,yaw); if(s>best.s) best={s,x,yaw}; }
+  const c0=best; for(let yaw=c0.yaw-1.5;yaw<=c0.yaw+1.51;yaw+=0.25)for(let x=c0.x-1;x<=c0.x+1.01;x+=0.25){ const s=score(x,yaw); if(s>best.s) best={s,x,yaw}; }
+  S.plane.x0=best.x; S.plane.x0auto=best.x; S.plane.yc=cy; S.plane.zc=cz; S.plane.yaw=best.yaw; S.plane.roll=0;
+  /* anterior-most tissue near the plane = nasal tip, used to centre the view */
+  let ymin=1e9,zt=cz; const n=[Math.cos(best.yaw*D2R),Math.sin(best.yaw*D2R)];
+  for(let k=0;k<v.nz;k++)for(let j=0;j<v.ny;j++){ const y=v.oy+j*v.sy; const x=best.x-(n[1]/n[0])*(y-cy); const i=Math.round((x-v.ox)/v.sx); if(i<0||i>=v.nx)continue; if(v.data[i+v.nx*(j+v.ny*k)]>thr){ if(y<ymin){ymin=y;zt=v.oz+k*v.sz;} break; } }
+  const B=basis(); const ey=v.ny*v.sy,ez=v.nz*v.sz; const sw=Math.max(200,cssW()),sh=Math.max(200,cssH());
+  if(ey<=170&&ez<=140){ /* cropped scan: fit the whole sagittal section */
+    const ctr=[best.x-(n[1]/n[0])*(v.oy+ey/2-cy),v.oy+ey/2,v.oz+ez/2]; const uv=toUV(ctr,B); S.view.uc=uv[0]; S.view.vc=uv[1];
+    S.view.s=Math.min(sw/ey,sh/ez)*0.94;
+  } else { /* whole head: centre on the nasal region */
+    const tgt=[best.x-(n[1]/n[0])*(ymin+32-cy),ymin+32,zt+2]; const uv=toUV(tgt,B); S.view.uc=uv[0]; S.view.vc=uv[1];
+    S.view.s=sh/110;
+  }
+  $('pShift').value=0; $('pYaw').value=best.yaw.toFixed(1); $('pRoll').value=0; syncPlaneOut();
+  dirtyImg=true;
+}
+function syncPlaneOut(){
+  $('pShiftO').textContent=f1(S.plane.x0-S.plane.x0auto)+' mm'; $('pYawO').textContent=f1(S.plane.yaw)+'°'; $('pRollO').textContent=f1(S.plane.roll)+'°';
+}
+
+/* ---------------- 3D (three.js) ---------------- */
+let renderer,scene,camera,controls,gTeach,gPat,patMesh=null,planeMesh=null,planeTex=null,ovl=null,clipPl=null,dirty3=true;
+const toScene=v=>new THREE.Vector3(v[0],v[2],-v[1]);
+function planeMatrix(B,c){ const m=new THREE.Matrix4(); m.makeBasis(toScene(B.u),toScene(B.v),toScene(B.n)); m.setPosition(toScene(c)); return m; }
+function init3D(){
+  const host=$('three');
+  renderer=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2)); renderer.setClearColor(0x0d1317,1); renderer.localClippingEnabled=true;
+  host.appendChild(renderer.domElement);
+  scene=new THREE.Scene(); camera=new THREE.PerspectiveCamera(32,1,1,4000);
+  scene.add(new THREE.HemisphereLight(0xffffff,0x334455,0.85));
+  const dl=new THREE.DirectionalLight(0xffffff,0.8); dl.position.set(120,160,200); scene.add(dl);
+  const dl2=new THREE.DirectionalLight(0xffffff,0.35); dl2.position.set(-150,-40,-120); scene.add(dl2);
+  gTeach=new THREE.Group(); gPat=new THREE.Group(); scene.add(gTeach,gPat);
+  controls=new THREE.OrbitControls(camera,renderer.domElement); controls.enableDamping=true; controls.dampingFactor=0.12; controls.addEventListener('change',()=>dirty3=true);
+  clipPl=new THREE.Plane(new THREE.Vector3(-1,0,0),0);
+  new ResizeObserver(()=>{ const r=host.getBoundingClientRect(); if(r.width<2||r.height<2)return; renderer.setSize(r.width,r.height,false); camera.aspect=r.width/r.height; camera.updateProjectionMatrix(); dirty3=true; }).observe(host);
+  camera.position.set(270,0,0); controls.target.set(0,0,0); controls.update();
+  buildTeach();
+  (function loop(){ requestAnimationFrame(loop); if(controls.update()||dirty3){ renderer.render(scene,camera); dirty3=false; } })();
+}
+function shapeMesh(poly,thick,color,opacity,B,extra){
+  const sh=new THREE.Shape(poly.map(p=>new THREE.Vector2(p[0],p[1])));
+  const g=new THREE.ExtrudeGeometry(sh,{depth:thick,bevelEnabled:false}); g.translate(0,0,-thick/2);
+  const m=new THREE.Mesh(g,new THREE.MeshPhongMaterial({color,transparent:opacity<1,opacity,side:THREE.DoubleSide,shininess:30}));
+  m.matrixAutoUpdate=false; m.matrix.copy(planeMatrix(B,[0,0,0])); if(extra)m.position.copy(extra); return m;
+}
+function buildTeach(){
+  while(gTeach.children.length){ const o=gTeach.children.pop(); o.geometry&&o.geometry.dispose(); }
+  const B={n:[1,0,0],u:[0,1,0],v:[0,0,1]};
+  if(S.ly.bone){ gTeach.add(shapeMesh(SCH.ppe,1.4,0xd9d2bd,1,B)); gTeach.add(shapeMesh(SCH.vomer,1.4,0xbfb8a5,1,B)); }
+  if(S.ly.cart) gTeach.add(shapeMesh(SCH.cart,2.6,0x7cc3dc,0.9,B));
+  const a=schAnalysis();
+  if(S.ly.harv&&a.poly.length>=3) gTeach.add(shapeMesh(a.poly,3.0,0x2f9e6b,1,B));
+  gTeach.position.set(0,-26,28);
+  dirty3=true;
+}
+function buildBone(){
+  const v=S.vol; if(!v) return;
+  if(patMesh){ gPat.remove(patMesh); patMesh.geometry.dispose(); patMesh=null; }
+  const N=v.nx*v.ny*v.nz; const stride=Math.max(1,Math.ceil(Math.cbrt(N/4.5e6)));
+  const g=surfaceNets(v,S.boneHU,stride);
+  if(!g) { toast('No bone surface at this threshold.'); return; }
+  const mat=new THREE.MeshPhongMaterial({color:0xe8e0cc,shininess:25,side:THREE.DoubleSide,clippingPlanes:S.cut?[clipPl]:[]});
+  patMesh=new THREE.Mesh(g,mat); patMesh.visible=S.ly3.bone; const o=+($('boneOp')?$('boneOp').value:1); mat.transparent=o<1; mat.opacity=o; mat.depthWrite=o>=1; gPat.add(patMesh); updatePlane3D(); dirty3=true;
+}
+function surfaceNets(vol,iso,stride){
+  const dx=Math.ceil(vol.nx/stride)+2,dy=Math.ceil(vol.ny/stride)+2,dz=Math.ceil(vol.nz/stride)+2;
+  const F=new Float32Array(dx*dy*dz).fill(-1024);
+  for(let k=0;k<dz-2;k++)for(let j=0;j<dy-2;j++)for(let i=0;i<dx-2;i++){
+    let s=0,c=0; const k0=k*stride,j0=j*stride,i0=i*stride;
+    for(let kk=k0;kk<Math.min(k0+stride,vol.nz);kk++)for(let jj=j0;jj<Math.min(j0+stride,vol.ny);jj++){ const b=vol.nx*(jj+vol.ny*kk); for(let ii=i0;ii<Math.min(i0+stride,vol.nx);ii++){ s+=vol.data[b+ii]; c++; } }
+    F[(i+1)+dx*((j+1)+dy*(k+1))]=s/c;
+  }
+  const cell=new Int32Array(dx*dy*dz).fill(-1); const V=[];
+  const co=[0,1,dx,dx+1,dx*dy,dx*dy+1,dx*dy+dx,dx*dy+dx+1];
+  const cp=[[0,0,0],[1,0,0],[0,1,0],[1,1,0],[0,0,1],[1,0,1],[0,1,1],[1,1,1]];
+  const ed=[[0,1],[2,3],[4,5],[6,7],[0,2],[1,3],[4,6],[5,7],[0,4],[1,5],[2,6],[3,7]];
+  const val=new Float32Array(8);
+  for(let k=0;k<dz-1;k++)for(let j=0;j<dy-1;j++)for(let i=0;i<dx-1;i++){
+    const b=i+dx*(j+dy*k); let m=0;
+    for(let c=0;c<8;c++){ val[c]=F[b+co[c]]-iso; if(val[c]>=0) m|=1<<c; }
+    if(m===0||m===255) continue;
+    let sx=0,sy=0,sz=0,n=0;
+    for(let e=0;e<12;e++){ const a=ed[e][0],c=ed[e][1]; if((val[a]>=0)!==(val[c]>=0)){ const t=val[a]/(val[a]-val[c]); sx+=cp[a][0]+t*(cp[c][0]-cp[a][0]); sy+=cp[a][1]+t*(cp[c][1]-cp[a][1]); sz+=cp[a][2]+t*(cp[c][2]-cp[a][2]); n++; } }
+    cell[b]=V.length/3; V.push(i+sx/n,j+sy/n,k+sz/n);
+  }
+  if(!V.length) return null;
+  const idx=[];
+  const quad=(A,B,C,D,flip)=>{ if(A<0||B<0||C<0||D<0)return; if(!flip) idx.push(A,B,C,A,C,D); else idx.push(A,C,B,A,D,C); };
+  for(let k=1;k<dz-1;k++)for(let j=1;j<dy-1;j++)for(let i=1;i<dx-1;i++){
+    const p=i+dx*(j+dy*k),s0=F[p]>=iso;
+    const cx=(a,b,c)=>cell[a+dx*(b+dy*c)];
+    if(s0!==(F[p+1]>=iso)) quad(cx(i,j-1,k-1),cx(i,j,k-1),cx(i,j,k),cx(i,j-1,k),!s0);
+    if(s0!==(F[p+dx]>=iso)) quad(cx(i-1,j,k-1),cx(i-1,j,k),cx(i,j,k),cx(i,j,k-1),!s0);
+    if(s0!==(F[p+dx*dy]>=iso)) quad(cx(i-1,j-1,k),cx(i,j-1,k),cx(i,j,k),cx(i-1,j,k),!s0);
+  }
+  const pos=new Float32Array(V.length);
+  for(let q=0;q<V.length;q+=3){
+    const wx=vol.ox+((V[q]-1)*stride+(stride-1)/2)*vol.sx, wy=vol.oy+((V[q+1]-1)*stride+(stride-1)/2)*vol.sy, wz=vol.oz+((V[q+2]-1)*stride+(stride-1)/2)*vol.sz;
+    pos[q]=wx; pos[q+1]=wz; pos[q+2]=-wy;
+  }
+  const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.BufferAttribute(pos,3));
+  g.setIndex(new THREE.BufferAttribute(new Uint32Array(idx),1)); g.computeVertexNormals(); return g;
+}
+function updatePlane3D(){
+  if(!S.vol||!scene) return;
+  const B=basis(),W=imgCv.width,H=imgCv.height,s=S.view.s*CK;
+  if(!planeTex||planeTex.image!==imgCv||planeTex.__w!==W||planeTex.__h!==H){
+    if(planeTex)planeTex.dispose(); planeTex=new THREE.CanvasTexture(imgCv); planeTex.__w=W; planeTex.__h=H; planeTex.minFilter=THREE.LinearFilter;
+    if(planeMesh){ gPat.remove(planeMesh); planeMesh.material.dispose(); planeMesh.geometry.dispose(); planeMesh=null; }
+  }
+  if(!planeMesh){ planeMesh=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({map:planeTex,side:THREE.DoubleSide,transparent:true,opacity:0.95,polygonOffset:true,polygonOffsetFactor:2,polygonOffsetUnits:2})); planeMesh.matrixAutoUpdate=false; gPat.add(planeMesh); }
+  planeTex.needsUpdate=true;
+  const m=planeMatrix(B,B.c); m.multiply(new THREE.Matrix4().makeTranslation(S.view.uc,S.view.vc,0)).multiply(new THREE.Matrix4().makeScale(W/s,H/s,1));
+  planeMesh.matrix.copy(m); planeMesh.visible=S.showPlane&&S.tab!=='teach';
+  const n=toScene(B.n); clipPl.normal.copy(n).negate(); clipPl.constant=n.dot(toScene(B.c));
+  dirty3=true;
+}
+function updateOverlays3D(){
+  if(ovl){ gPat.remove(ovl); ovl.traverse(o=>{o.geometry&&o.geometry.dispose();}); ovl=null; }
+  if(!S.vol) return;
+  ovl=new THREE.Group();
+  const lineMat=c=>new THREE.LineBasicMaterial({color:c,depthTest:false,transparent:true}); 
+  const mk=(pts,c,loop)=>{ const g=new THREE.BufferGeometry().setFromPoints(pts.map(toScene)); const l=loop?new THREE.LineLoop(g,lineMat(c)):new THREE.Line(g,lineMat(c)); l.renderOrder=10; ovl.add(l); };
+  if(S.pts.length>1) mk(S.pts,S.bw?0xffffff:0xe0a030,S.closed);
+  if(S.an&&S.an.poly.length>=3&&S.snap){ mk(S.an.poly.map(p=>fromUV(p[0],p[1],S.snap)),S.bw?0xffffff:0x2f9e6b,true); }
+  const dot3=(P,c)=>{ const m=new THREE.Mesh(new THREE.SphereGeometry(1.1,12,8),new THREE.MeshBasicMaterial({color:c,depthTest:false})); m.position.copy(toScene(P)); m.renderOrder=11; ovl.add(m); };
+  const lc=S.bw?{K:0xffffff,ASA:0xffffff,ANS:0xffffff}:{K:0xff6b6b,ASA:0xffd166,ANS:0x6bc5ff}; Object.keys(S.lm).forEach(k=>{ if(S.lm[k]) dot3(S.lm[k],lc[k]); });
+  if(S.ruler.length===2) mk(S.ruler,0xffffff,false);
+  if(S.snap&&S.ly3.plan){
+    const mat=planeMatrix(S.snap,S.snap.c);
+    if(S.an&&S.an.poly.length>=3){ const sh=new THREE.Shape(S.an.poly.map(q=>new THREE.Vector2(q[0],q[1]))); const m=new THREE.Mesh(new THREE.ShapeGeometry(sh),new THREE.MeshBasicMaterial({color:S.bw?0xffffff:0x2f9e6b,transparent:true,opacity:S.bw?0.55:0.45,side:THREE.DoubleSide,depthTest:false})); m.matrixAutoUpdate=false; m.matrix.copy(mat); m.renderOrder=9; ovl.add(m); }
+    if(S.tab==='plan'&&S.sel){ const cols=S.bw?{spr:0x111111,col:0x111111,seg:0x111111,tym:0x111111}:{spr:0xe0a030,col:0x58b2d1,seg:0xd9534f,tym:0x9b7fd6}; S.sel.placed.forEach(pl=>{ const box=new THREE.Mesh(new THREE.BoxGeometry(pl.L,pl.W,1.4),new THREE.MeshBasicMaterial({color:cols[pl.id]||0xffffff,transparent:true,opacity:0.88,depthTest:false})); const t=new THREE.Matrix4().makeTranslation(pl.cx,pl.cy,0).multiply(new THREE.Matrix4().makeRotationZ(pl.th*D2R)); box.matrixAutoUpdate=false; box.matrix.copy(mat.clone().multiply(t)); box.renderOrder=12; ovl.add(box); }); }
+  }
+  gPat.add(ovl); dirty3=true;
+}
+function fitCamera(view){
+  const v=S.vol; if(!v||!camera) return;
+  const B=basis(); const tgt=fromUV(S.view.uc,S.view.vc,B); const T=toScene(tgt); const d=Math.min(600,Math.max(220,Math.max(v.nz*v.sz,v.ny*v.sy)*2.6));
+  const dirs={front:[0,0,1],left:[1,0,0],right:[-1,0,0],top:[0,1,0.001],obl:[1,0.45,0.9]};
+  let dir=dirs[view||'obl']; const dv=new THREE.Vector3(...dir).normalize();
+  if(!view&&S.cut){ dv.copy(toScene(B.n)); }
+  camera.position.copy(T).addScaledVector(dv,d); controls.target.copy(T); controls.update(); dirty3=true;
+}
+function setCamTeach(){ camera.position.set(270,0,0); controls.target.set(0,0,0); camera.up.set(0,1,0); controls.update(); dirty3=true; }
+
+/* ---------------- 2D view ---------------- */
+const sag=$('sag'),sctx=sag.getContext('2d'); const imgCv=document.createElement('canvas'),ictx=imgCv.getContext('2d');
+const CK=Math.max(1,Math.min(window.__CK||window.devicePixelRatio||1,4)); const cssW=()=>sag.width/CK,cssH=()=>sag.height/CK;
+let dirtyImg=true,pending=false;
+function requestDraw(){ if(pending)return; pending=true; requestAnimationFrame(()=>{ pending=false; draw2D(); }); }
+function renderImage(){
+  const v=S.vol; const W=imgCv.width,H=imgCv.height; if(!W||!H) return;
+  const id=ictx.createImageData(W,H),d=id.data,B=basis(),c=B.c,{uc,vc}=S.view,s=S.view.s*CK;
+  const lo=S.win.l-S.win.w/2,k=255/S.win.w,slab=S.slab,nS=slab>0?Math.max(2,Math.round(slab/0.5)+1):1;
+  for(let py=0;py<H;py++){ const vv=vc-(py-H/2)/s;
+    for(let px=0;px<W;px++){ const uu=uc+(px-W/2)/s;
+      const bx=c[0]+uu*B.u[0]+vv*B.v[0],by=c[1]+uu*B.u[1]+vv*B.v[1],bz=c[2]+uu*B.u[2]+vv*B.v[2];
+      let acc=0; if(nS===1) acc=sampleVol(v,bx,by,bz); else { for(let m=0;m<nS;m++){ const o=-slab/2+slab*m/(nS-1); acc+=sampleVol(v,bx+o*B.n[0],by+o*B.n[1],bz+o*B.n[2]); } acc/=nS; }
+      let g=(acc-lo)*k; g=g<0?0:g>255?255:g; const q=(py*W+px)*4; d[q]=d[q+1]=d[q+2]=g; const fx=(bx-v.ox)/v.sx,fy=(by-v.oy)/v.sy,fz=(bz-v.oz)/v.sz; d[q+3]=(fx<0||fy<0||fz<0||fx>v.nx-1||fy>v.ny-1||fz>v.nz-1||acc<-400)?0:255; } }
+  ictx.putImageData(id,0,0); updatePlane3D();
+}
+const uvToPx=(u,v)=>[cssW()/2+(u-S.view.uc)*S.view.s,cssH()/2-(v-S.view.vc)*S.view.s];
+const pxToUV=(x,y)=>[S.view.uc+(x-cssW()/2)/S.view.s,S.view.vc-(y-cssH()/2)/S.view.s];
+function ptPx(P,B){ const uv=toUV(P,B); return uvToPx(uv[0],uv[1]); }
+let hatchP=null;
+function hatchPattern(){ if(hatchP) return hatchP; const c=document.createElement('canvas'); c.width=c.height=8; const x=c.getContext('2d'); x.fillStyle='rgba(255,255,255,.5)'; x.fillRect(0,0,8,8); x.strokeStyle='#000'; x.lineWidth=1.3; x.beginPath(); x.moveTo(-1,9); x.lineTo(9,-1); x.moveTo(-1,1); x.lineTo(1,-1); x.moveTo(7,9); x.lineTo(9,7); x.stroke(); hatchP=sctx.createPattern(c,'repeat'); return hatchP; }
+function marker(ctx,k,q,r){ ctx.beginPath(); if(k==='K'){ ctx.rect(q[0]-r,q[1]-r,2*r,2*r); } else if(k==='ASA'){ ctx.moveTo(q[0],q[1]-r*1.2); ctx.lineTo(q[0]+r*1.1,q[1]+r*0.9); ctx.lineTo(q[0]-r*1.1,q[1]+r*0.9); ctx.closePath(); } else ctx.arc(q[0],q[1],r,0,7); }
+function draw2D(){
+  const W=cssW(),H=cssH(); if(!W||!H) return;
+  sctx.setTransform(1,0,0,1,0,0); sctx.clearRect(0,0,sag.width,sag.height); sctx.setTransform(CK,0,0,CK,0,0);
+  const schem=S.tab==='teach'||!S.vol;
+  $('paneTitle').textContent=schem?'Schematic (sagittal)':'Midsagittal reformat';
+  $('paneHint').textContent=schem?(S.vol?'':'Load a scan in the Patient tab'):'Anterior left · scroll to zoom';
+  if(schem){ drawSchematic(); return; }
+  if(dirtyImg){ renderImage(); dirtyImg=false; }
+  sctx.drawImage(imgCv,0,0,W,H);
+  const B=basis(),ctx=sctx;
+  const lcol={K:'#ff6b6b',ASA:'#ffd166',ANS:'#6bc5ff'};
+  /* harvestable region + strut lines */
+  if(S.an&&S.snap&&S.an.poly.length>=3){
+    ctx.beginPath(); S.an.poly.forEach((p,i)=>{ const q=ptPx(fromUV(p[0],p[1],S.snap),B); i?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1]); }); ctx.closePath();
+    if(S.bw){ ctx.fillStyle=hatchPattern(); ctx.fill(); ctx.lineJoin='round'; ctx.strokeStyle='#fff'; ctx.lineWidth=3.6; ctx.stroke(); ctx.strokeStyle='#000'; ctx.lineWidth=1.4; ctx.stroke(); }
+    else { ctx.fillStyle='rgba(47,158,107,.38)'; ctx.fill(); ctx.strokeStyle='#2f9e6b'; ctx.lineWidth=1.5; ctx.stroke(); }
+  }
+  if(S.tab==='plan'&&S.sel&&S.snap){
+    ctx.font='700 11px "Public Sans",system-ui,sans-serif';
+    S.sel.placed.forEach(pl=>{ const c=Math.cos(pl.th*D2R),s_=Math.sin(pl.th*D2R); const cor=[[-pl.L/2,-pl.W/2],[pl.L/2,-pl.W/2],[pl.L/2,pl.W/2],[-pl.L/2,pl.W/2]].map(q=>ptPx(fromUV(pl.cx+q[0]*c-q[1]*s_,pl.cy+q[0]*s_+q[1]*c,S.snap),B));
+      ctx.beginPath(); cor.forEach((q,i)=>i?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1])); ctx.closePath(); ctx.fillStyle='rgba(255,255,255,.62)'; ctx.fill(); ctx.lineJoin='round'; ctx.strokeStyle='#fff'; ctx.lineWidth=3.4; ctx.stroke(); ctx.strokeStyle='#000'; ctx.lineWidth=1.4; ctx.stroke();
+      const q0=ptPx(fromUV(pl.cx,pl.cy,S.snap),B); ctx.textAlign='center'; ctx.lineWidth=3; ctx.strokeStyle='#fff'; ctx.strokeText(pl.label,q0[0],q0[1]+4); ctx.fillStyle='#000'; ctx.fillText(pl.label,q0[0],q0[1]+4); ctx.textAlign='left'; });
+  }
+  if(S.an&&S.snap){ const A=S.an;
+    [[A.K,A.ASA,A.nD],[A.ASA,A.ANS,A.nC]].forEach(([a,b,n])=>{ const p1=ptPx(fromUV(a[0]+n[0]*A.w,a[1]+n[1]*A.w,S.snap),B),p2=ptPx(fromUV(b[0]+n[0]*A.w,b[1]+n[1]*A.w,S.snap),B);
+      if(S.bw){ ctx.setLineDash([]); ctx.strokeStyle='#fff'; ctx.lineWidth=3.6; ctx.beginPath(); ctx.moveTo(p1[0],p1[1]); ctx.lineTo(p2[0],p2[1]); ctx.stroke(); }
+      ctx.setLineDash([6,4]); ctx.strokeStyle=S.bw?'#000':'#ff7a4d'; ctx.lineWidth=S.bw?1.5:1.3; ctx.beginPath(); ctx.moveTo(p1[0],p1[1]); ctx.lineTo(p2[0],p2[1]); ctx.stroke(); });
+    ctx.setLineDash([]); }
+  /* outline */
+  if(S.pts.length){
+    ctx.beginPath(); S.pts.forEach((P,i)=>{ const q=ptPx(P,B); i?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1]); }); if(S.closed)ctx.closePath();
+    if(S.bw){ ctx.lineJoin='round'; ctx.strokeStyle='#fff'; ctx.lineWidth=4; ctx.stroke(); ctx.strokeStyle='#000'; ctx.lineWidth=1.6; ctx.stroke(); } else { ctx.strokeStyle='#e0a030'; ctx.lineWidth=1.8; ctx.stroke(); }
+    S.pts.forEach((P,i)=>{ const q=ptPx(P,B),far=Math.abs(offPlane(P,B))>1.5; ctx.globalAlpha=far?.4:1; ctx.beginPath(); ctx.arc(q[0],q[1],i===0?5:3.5,0,7); ctx.fillStyle=(i===0||S.bw)?'#fff':'#e0a030'; ctx.fill(); ctx.strokeStyle='#000'; ctx.lineWidth=1; ctx.stroke(); ctx.globalAlpha=1; });
+  }
+  /* landmarks */
+  ctx.font='600 12px "Public Sans",system-ui,sans-serif';
+  Object.keys(S.lm).forEach(k=>{ const P=S.lm[k]; if(!P)return; const q=ptPx(P,B);
+    if(S.bw){ marker(ctx,k,q,6); ctx.fillStyle='#fff'; ctx.fill(); ctx.strokeStyle='#000'; ctx.lineWidth=1.6; ctx.stroke(); ctx.lineWidth=3; ctx.strokeStyle='#000'; ctx.strokeText(k,q[0]+9,q[1]-7); ctx.fillStyle='#fff'; ctx.fillText(k,q[0]+9,q[1]-7); }
+    else { ctx.beginPath(); ctx.arc(q[0],q[1],5,0,7); ctx.fillStyle=lcol[k]; ctx.fill(); ctx.strokeStyle='#000'; ctx.lineWidth=1; ctx.stroke(); ctx.fillStyle=lcol[k]; ctx.fillText(k,q[0]+8,q[1]-6); } });
+  /* ruler */
+  if(S.ruler.length){ const p=S.ruler.map(P=>ptPx(P,B)); ctx.strokeStyle='#fff'; ctx.lineWidth=1.3; ctx.beginPath(); p.forEach((q,i)=>i?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1])); ctx.stroke();
+    p.forEach(q=>{ctx.beginPath();ctx.arc(q[0],q[1],3,0,7);ctx.fillStyle='#fff';ctx.fill();});
+    if(S.ruler.length===2){ const d=Math.hypot(S.ruler[0][0]-S.ruler[1][0],S.ruler[0][1]-S.ruler[1][1],S.ruler[0][2]-S.ruler[1][2]); ctx.fillStyle='#fff'; ctx.fillText(f1(d)+' mm',(p[0][0]+p[1][0])/2+6,(p[0][1]+p[1][1])/2-6); } }
+  /* annotations */
+  { ctx.font='600 12px "Public Sans",system-ui,sans-serif'; const lab=(t,x,y)=>{ ctx.lineWidth=3; ctx.strokeStyle='#000'; ctx.strokeText(t,x,y); ctx.fillStyle='#fff'; ctx.fillText(t,x,y); };
+    S.annos.forEach(a=>{ const q=a.pts.map(P=>ptPx(P,B)); ctx.strokeStyle='#fff'; ctx.lineWidth=1.4;
+      if(a.type==='angle'){ ctx.beginPath(); ctx.moveTo(q[0][0],q[0][1]); ctx.lineTo(q[1][0],q[1][1]); ctx.lineTo(q[2][0],q[2][1]); ctx.stroke(); lab(a.txt,q[1][0]+8,q[1][1]-8); }
+      else if(a.type==='hu'){ ctx.beginPath(); ctx.arc(q[0][0],q[0][1],a.rad*S.view.s,0,7); ctx.stroke(); lab(a.txt,q[0][0]+a.rad*S.view.s+4,q[0][1]+4); }
+      else { ctx.beginPath(); ctx.arc(q[0][0],q[0][1],3.5,0,7); ctx.fillStyle='#fff'; ctx.fill(); ctx.strokeStyle='#000'; ctx.stroke(); lab(a.txt,q[0][0]+8,q[0][1]-6); } });
+    S.pending.forEach(P=>{ const q=ptPx(P,B); ctx.beginPath(); ctx.arc(q[0],q[1],3,0,7); ctx.fillStyle='#fff'; ctx.fill(); ctx.strokeStyle='#000'; ctx.lineWidth=1; ctx.stroke(); }); }
+  /* scale bar + orientation */
+  const bar=10*S.view.s; ctx.fillStyle='#fff'; ctx.fillRect(14,H-22,bar,3); ctx.fillText('10 mm',14,H-28);
+  ctx.fillStyle='rgba(255,255,255,.7)'; ctx.fillText('A',8,H/2); ctx.fillText('P',W-16,H/2); ctx.fillText('S',W/2,16); ctx.fillText('I',W/2,H-6);
+}
+function callout(ctx,text,tx,ty,lx,ly,align){
+  ctx.strokeStyle='rgba(219,230,236,.6)'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(lx,ly); ctx.lineTo(tx,ty); ctx.stroke();
+  ctx.beginPath(); ctx.arc(tx,ty,2.5,0,7); ctx.fillStyle='#dbe6ec'; ctx.fill();
+  const w=ctx.measureText(text).width, x=align==='left'?lx+4:lx-4-w; ctx.fillStyle='rgba(13,19,23,.82)'; ctx.fillRect(x-3,ly-9,w+6,18);
+  ctx.fillStyle='#dbe6ec'; ctx.fillText(text,x,ly+4);
+}
+function drawSchematic(){
+  const W=cssW(),H=cssH(),ctx=sctx; ctx.fillStyle='#0d1317'; ctx.fillRect(0,0,W,H);
+  const sc=Math.min(W*0.74/98,H*0.7/60); const cx=27.6,cy=26; const P=p=>[W/2+(p[0]-cx)*sc,H/2-(p[1]-cy)*sc];
+  const path=poly=>{ ctx.beginPath(); poly.forEach((p,i)=>{const q=P(p); i?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1]);}); ctx.closePath(); };
+  ctx.font='600 12.5px "Public Sans",system-ui,sans-serif';
+  if(S.ly.bone){ path(SCH.ppe); ctx.fillStyle='#d9d2bd'; ctx.fill(); path(SCH.vomer); ctx.fillStyle='#bfb8a5'; ctx.fill(); }
+  if(S.ly.cart){ path(SCH.cart); ctx.fillStyle='#7cc3dc'; ctx.fill(); }
+  const a=schAnalysis();
+  if(S.ly.harv&&a.poly.length>=3){ path(a.poly); ctx.fillStyle='#2f9e6b'; ctx.fill(); }
+  if(S.ly.strut){ ctx.setLineDash([6,4]); ctx.strokeStyle='#ff7a4d'; ctx.lineWidth=1.6;
+    [[SCH.K,SCH.ASA,a.nD],[SCH.ASA,SCH.ANS,a.nC]].forEach(([p,q,n])=>{ const A=P([p[0]+n[0]*S.strutW,p[1]+n[1]*S.strutW]),Bq=P([q[0]+n[0]*S.strutW,q[1]+n[1]*S.strutW]); ctx.beginPath(); ctx.moveTo(A[0],A[1]); ctx.lineTo(Bq[0],Bq[1]); ctx.stroke(); }); ctx.setLineDash([]); }
+  path(SCH.cart); ctx.strokeStyle='rgba(0,0,0,.5)'; ctx.lineWidth=1; ctx.stroke();
+  [['K',SCH.K,'#ff6b6b'],['ASA',SCH.ASA,'#ffd166'],['ANS',SCH.ANS,'#6bc5ff']].forEach(([n,p,c])=>{ const q=P(p); ctx.beginPath(); ctx.arc(q[0],q[1],4.5,0,7); ctx.fillStyle=c; ctx.fill(); });
+  /* callouts at the margins */
+  const fs=W<520?11:12.5; ctx.font='600 '+fs+'px "Public Sans",system-ui,sans-serif';
+  const lx=W*0.03,rx=W*0.97;
+  callout(ctx,'K, start of dorsal strut',P(SCH.K)[0],P(SCH.K)[1],lx,H*0.22,'left');
+  callout(ctx,'ASA, anterior septal angle',P(SCH.ASA)[0],P(SCH.ASA)[1],lx,H*0.40,'left');
+  const cc=polyCentroid(SCH.cart); callout(ctx,'Quadrilateral cartilage',P(cc)[0],P(cc)[1],lx,H*0.66,'left');
+  callout(ctx,'ANS, anterior nasal spine',P(SCH.ANS)[0],P(SCH.ANS)[1],lx,H*0.80,'left');
+  const pc=polyCentroid(SCH.ppe); callout(ctx,'Perpendicular plate',P(pc)[0],P(pc)[1],rx,H*0.22,'right');
+  const vc=polyCentroid(SCH.vomer); callout(ctx,'Vomer',P(vc)[0],P(vc)[1],rx,H*0.78,'right');
+  ctx.fillStyle='rgba(255,255,255,.55)'; ctx.fillText('Anterior',lx,H-10); ctx.textAlign='right'; ctx.fillText('Posterior',rx,H-10); ctx.textAlign='left';
+  ctx.fillText('Schematic, not to scale',lx,18);
+}
+function drawMini(cv,mode){
+  const v=S.vol,ctx=cv.getContext('2d'); if(!v){ctx.fillStyle='#0d1317';ctx.fillRect(0,0,cv.width,cv.height);return;}
+  const B=basis(); const ex=v.nx*v.sx,ey=v.ny*v.sy,ez=v.nz*v.sz;
+  const BW=Math.round(360*CK); if(cv.width!==BW) cv.width=BW; const W=cv.width; let wm,hm; if(mode==='ax'){wm=ex;hm=ey;} else {wm=ex;hm=ez;}
+  const H=Math.min(300*CK,Math.round(W*hm/wm)); if(cv.height!==H) cv.height=H;
+  const scl=W/wm; const id=ctx.createImageData(W,H),d=id.data; const lo=S.win.l-S.win.w/2,kk=255/S.win.w;
+  const z0=B.c[2]+S.view.vc*B.v[2], y0=B.c[1]+S.view.uc*B.u[1];
+  const k0=Math.max(0,Math.min(v.nz-1,Math.round((z0-v.oz)/v.sz))), j0=Math.max(0,Math.min(v.ny-1,Math.round((y0-v.oy)/v.sy)));
+  for(let py=0;py<H;py++)for(let px=0;px<W;px++){
+    const i=Math.min(v.nx-1,Math.floor(px/scl/v.sx));
+    let j,k; if(mode==='ax'){ j=Math.min(v.ny-1,Math.floor(py/scl/v.sy)); k=k0; } else { k=Math.min(v.nz-1,Math.floor((H-1-py)/scl/v.sz)); j=j0; }
+    let g=(v.data[i+v.nx*(j+v.ny*k)]-lo)*kk; g=g<0?0:g>255?255:g; const q=(py*W+px)*4; d[q]=d[q+1]=d[q+2]=g; d[q+3]=255; }
+  ctx.putImageData(id,0,0);
+  /* plane line: n.(P-c)=0 */
+  const n=B.n,c=B.c; ctx.strokeStyle='#e0a030'; ctx.lineWidth=1.5*CK; ctx.beginPath();
+  if(mode==='ax'){ const y1=v.oy,y2=v.oy+ey; const xa=y=>c[0]-(n[1]*(y-c[1])+n[2]*(z0-c[2]))/n[0]; ctx.moveTo((xa(y1)-v.ox)*scl,(y1-v.oy)*scl); ctx.lineTo((xa(y2)-v.ox)*scl,(y2-v.oy)*scl); }
+  else { const z1=v.oz,z2=v.oz+ez; const xa=z=>c[0]-(n[2]*(z-c[2])+n[1]*(y0-c[1]))/n[0]; ctx.moveTo((xa(z1)-v.ox)*scl,H-(z1-v.oz)*scl); ctx.lineTo((xa(z2)-v.ox)*scl,H-(z2-v.oz)*scl); }
+  ctx.stroke();
+  ctx.fillStyle='rgba(255,255,255,.7)'; ctx.font=(11*CK)+'px system-ui'; ctx.fillText(mode==='ax'?'Axial · L right':'Coronal · L right',6*CK,14*CK);
+}
+function miniClick(e,mode){
+  const v=S.vol; if(!v)return; const cv=e.currentTarget,r=cv.getBoundingClientRect(),px=(e.clientX-r.left)*cv.width/r.width,py=(e.clientY-r.top)*cv.height/r.height;
+  const scl=cv.width/(v.nx*v.sx),B=basis(),n=B.n,c=B.c,z0=c[2]+S.view.vc*B.v[2],y0=c[1]+S.view.uc*B.u[1];
+  const x=v.ox+px/scl; let P;
+  if(mode==='ax'){ const y=v.oy+py/scl; S.plane.x0=x+(n[1]*(y-c[1])+n[2]*(z0-c[2]))/n[0]; }
+  else { const z=v.oz+(cv.height-py)/scl; S.plane.x0=x+(n[2]*(z-c[2])+n[1]*(y0-c[1]))/n[0]; }
+  $('pShift').value=Math.max(-30,Math.min(30,S.plane.x0-S.plane.x0auto)); syncPlaneOut(); dirtyImg=true; requestDraw(); drawMinis(); updateOverlays3D();
+}
+function drawMinis(){ drawMini($('ax'),'ax'); drawMini($('co'),'co'); }
+
+/* ---------------- pointer interaction on the reformat ---------------- */
+let drag=null;
+function evPx(e){ const r=sag.getBoundingClientRect(); return [(e.clientX-r.left)*cssW()/r.width,(e.clientY-r.top)*cssH()/r.height]; }
+function worldAt(px,py){ const B=basis(),uv=pxToUV(px,py); return fromUV(uv[0],uv[1],B); }
+function ensureSnap(){ if(!S.snap) S.snap=basis(); }
+function nearPt(list,px,py,B,r){ let best=-1,bd=r; list.forEach((P,i)=>{ if(!P)return; const q=ptPx(P,B),d=Math.hypot(q[0]-px,q[1]-py); if(d<bd){bd=d;best=i;} }); return best; }
+sag.addEventListener('pointerdown',e=>{
+  if(!S.vol||S.tab==='teach')return; sag.setPointerCapture(e.pointerId); const [px,py]=evPx(e),B=basis();
+  if(e.button===1||e.button===2||S.tool==='pan'){ drag={type:'pan',x:px,y:py,uc:S.view.uc,vc:S.view.vc}; return; }
+  if(S.tool==='trace'){
+    const hit=nearPt(S.pts,px,py,B,9);
+    if(hit===0&&!S.closed&&S.pts.length>=3){ S.closed=true; update(); return; }
+    if(hit>=0){ drag={type:'pt',i:hit}; return; }
+    if(S.closed) return; ensureSnap(); S.pts.push(worldAt(px,py)); update(); return;
+  }
+  if(S.tool==='lm'){
+    const keys=['K','ASA','ANS']; const hit=nearPt(keys.map(k=>S.lm[k]),px,py,B,10);
+    if(hit>=0){ drag={type:'lm',k:keys[hit]}; return; }
+    ensureSnap(); S.lm[S.lmSel]=worldAt(px,py); const nx=keys[(keys.indexOf(S.lmSel)+1)%3]; if(!S.lm[nx]) setLm(nx); update(); return;
+  }
+  if(S.tool==='ruler'){ if(S.ruler.length>=2) S.ruler=[]; S.ruler.push(worldAt(px,py)); update(); return; }
+  if(S.tool==='angle'){ S.pending.push(worldAt(px,py)); if(S.pending.length===3){ const [a,b,c]=S.pending,v1=[a[0]-b[0],a[1]-b[1],a[2]-b[2]],v2=[c[0]-b[0],c[1]-b[1],c[2]-b[2]]; const ang=Math.acos(Math.max(-1,Math.min(1,dot(v1,v2)/(Math.hypot(...v1)*Math.hypot(...v2)||1))))/D2R; S.annos.push({type:'angle',pts:[a,b,c],txt:f1(ang)+'°'}); S.pending=[]; } update(true); return; }
+  if(S.tool==='hu'){ const P=worldAt(px,py),r=roiHU(P,2); S.annos.push({type:'hu',pts:[P],rad:2,txt:`${f0(r.mean)} ± ${f0(r.sd)} HU`}); update(true); return; }
+  if(S.tool==='thick'){ const P=worldAt(px,py),r=thickAt(P); S.annos.push({type:'thick',pts:[P],txt:r?`${f1(r.len)} mm, peak ${f0(r.mx)} HU`:'no septum here'}); update(true); return; }
+});
+sag.addEventListener('pointermove',e=>{
+  if(!drag)return; const [px,py]=evPx(e);
+  if(drag.type==='pan'){ S.view.uc=drag.uc-(px-drag.x)/S.view.s; S.view.vc=drag.vc+(py-drag.y)/S.view.s; dirtyImg=true; requestDraw(); return; }
+  const P=worldAt(px,py); if(drag.type==='pt') S.pts[drag.i]=P; if(drag.type==='lm') S.lm[drag.k]=P; update(true);
+});
+sag.addEventListener('pointerup',()=>{ if(drag&&drag.type==='pan'){drawMinis();updatePlane3D();} if(drag&&(drag.type==='pt'||drag.type==='lm')) schedulePlan(); drag=null; });
+sag.addEventListener('contextmenu',e=>e.preventDefault());
+sag.addEventListener('wheel',e=>{
+  if(!S.vol||S.tab==='teach')return; e.preventDefault(); const [px,py]=evPx(e); const b=pxToUV(px,py);
+  S.view.s=Math.max(1.5,Math.min(40,S.view.s*(e.deltaY<0?1.15:1/1.15))); const a=pxToUV(px,py); S.view.uc+=b[0]-a[0]; S.view.vc+=b[1]-a[1]; dirtyImg=true; requestDraw();
+},{passive:false});
+function update(light){ computeAnalysis(); updateOverlays3D(); updateResults(); renderSepRes(); requestDraw(); if(!light) schedulePlan(); }
+
+/* ---------------- analysis ---------------- */
+function computeAnalysis(){
+  S.an=null; if(!S.snap||!S.closed||S.pts.length<3||!S.lm.K||!S.lm.ASA||!S.lm.ANS) return;
+  const q=P=>toUV(P,S.snap); const poly=S.pts.map(q);
+  S.an=analysePoly(poly,q(S.lm.K),q(S.lm.ASA),q(S.lm.ANS),S.strutW);
+}
+function updateResults(){
+  const a=S.an; let h='';
+  const need=[]; if(S.pts.length<3||!S.closed) need.push('close the outline'); if(!S.lm.K||!S.lm.ASA||!S.lm.ANS) need.push('place K, ASA and ANS');
+  if(!S.vol) h='<p class="note">Load a scan to begin.</p>';
+  else if(a){
+    h=`<div class="kv"><span>Cartilage area (projected)</span><span>${f0(a.total)} mm²</span><span>Harvestable after ${f1(S.strutW)} mm strut</span><span>${f0(a.harv)} mm² (${f1(a.harv/100)} cm²)</span><span>Dorsal edge of harvest</span><span>${f1(a.dorsal)} mm</span><span>Caudal edge of harvest</span><span>${f1(a.caudal)} mm</span><span>Longest × narrowest span</span><span>${f1(a.feretMax)} × ${f1(a.feretMin)} mm</span><span>Dorsal strut K–ASA</span><span>${f1(Math.hypot(a.K[0]-a.ASA[0],a.K[1]-a.ASA[1]))} mm</span><span>Caudal strut ASA–ANS</span><span>${f1(Math.hypot(a.ASA[0]-a.ANS[0],a.ASA[1]-a.ANS[1]))} mm</span></div>`;
+    if(a.harv<=0) h+='<div class="warn">The strut lines remove the whole outline. Check the landmarks and the strut width.</div>';
+  } else h='<p class="note">To get areas: '+need.join(' and ')+'.</p>';
+  if(S.ruler.length===2){ const d=Math.hypot(S.ruler[0][0]-S.ruler[1][0],S.ruler[0][1]-S.ruler[1][1],S.ruler[0][2]-S.ruler[1][2]); h+=`<div class="kv" style="margin-top:6px"><span>Ruler</span><span>${f1(d)} mm</span></div>`; }
+  if(S.annos.length){ h+='<div class="kv" style="margin-top:6px">'+S.annos.map(a=>`<span>${{angle:'Angle',hu:'HU disc',thick:'Thickness'}[a.type]}</span><span>${a.txt}</span>`).join('')+'</div>'; }
+  $('results').innerHTML=h;
+}
+
+/* ---------------- planning ---------------- */
+
+/* ================= placement + plans ================= */
+function buildMask(poly,res){
+  let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9; poly.forEach(p=>{x0=Math.min(x0,p[0]);x1=Math.max(x1,p[0]);y0=Math.min(y0,p[1]);y1=Math.max(y1,p[1]);});
+  x0-=res;y0-=res;x1+=res;y1+=res; const nx=Math.ceil((x1-x0)/res)+1,ny=Math.ceil((y1-y0)/res)+1,M=new Uint8Array(nx*ny);
+  for(let j=0;j<ny;j++)for(let i=0;i<nx;i++) M[i+nx*j]=pipPoly(x0+i*res,y0+j*res,poly)?1:0;
+  return {M,nx,ny,x0,y0,res};
+}
+function rectPts(L,W){ const nl=Math.max(1,Math.ceil(L/1)),nw=Math.max(1,Math.ceil(W/1)),pts=[]; for(let i=0;i<=nl;i++)for(let j=0;j<=nw;j++)pts.push([-L/2+L*i/nl,-W/2+W*j/nw]); return pts; }
+function findPlacements(mask,L,W,max,firstOnly){
+  const {M,nx,ny,x0,y0,res}=mask,pts=rectPts(L,W),out=[],bx=x0+(nx-1)*res,by=y0+(ny-1)*res;
+  for(let th=0;th<180;th+=7.5){ const c=Math.cos(th*D2R),s_=Math.sin(th*D2R);
+    for(let cy=y0;cy<=by;cy+=1)for(let cx=x0;cx<=bx;cx+=1){
+      let ok=true; for(let q=0;q<pts.length;q++){ const x=cx+pts[q][0]*c-pts[q][1]*s_,y=cy+pts[q][0]*s_+pts[q][1]*c,i=Math.round((x-x0)/res),j=Math.round((y-y0)/res); if(i<0||j<0||i>=nx||j>=ny||!M[i+nx*j]){ok=false;break;} }
+      if(ok){ out.push({cx,cy,th}); if(firstOnly) return out; } } }
+  if(out.length>max){ const st=out.length/max,t=[]; for(let i=0;i<max;i++)t.push(out[Math.floor(i*st)]); return t; }
+  return out;
+}
+function cellSet(pl,L,W){ const c=Math.cos(pl.th*D2R),s_=Math.sin(pl.th*D2R),set=[]; rectPts(L,W).forEach(q=>{ const x=pl.cx+q[0]*c-q[1]*s_,y=pl.cy+q[0]*s_+q[1]*c; set.push((Math.round(x)+2000)*4001+(Math.round(y)+2000)); }); return Array.from(new Set(set)); }
+function packRects(mask,rects){
+  const cache={}; const lists=rects.map(r=>{ const k=r.L.toFixed(2)+'x'+r.W.toFixed(2); if(!cache[k]) cache[k]=findPlacements(mask,r.L,r.W,120,false).map(p=>({...p,cells:cellSet(p,r.L,r.W)})); return cache[k]; });
+  const alone=lists.map(l=>l.length>0);
+  const idx=rects.map((_,i)=>i).sort((a,b)=>lists[a].length-lists[b].length);
+  if(alone.every(Boolean)){
+    const chosen=new Array(rects.length),used=new Set(); let nodes=0;
+    const dfs=k=>{ if(k===idx.length) return true; if(++nodes>30000) return false; const i=idx[k]; for(const pl of lists[i]){ if(pl.cells.some(c=>used.has(c))) continue; chosen[i]=pl; pl.cells.forEach(c=>used.add(c)); if(dfs(k+1)) return true; pl.cells.forEach(c=>used.delete(c)); } return false; };
+    if(dfs(0)) return {ok:true,alone,placed:chosen.map((pl,i)=>({k:i,cx:pl.cx,cy:pl.cy,th:pl.th}))};
+  }
+  const placed=[],ug=new Set(); idx.forEach(i=>{ for(const pl of lists[i]){ if(pl.cells.some(c=>ug.has(c))) continue; pl.cells.forEach(c=>ug.add(c)); placed.push({k:i,cx:pl.cx,cy:pl.cy,th:pl.th}); break; } });
+  return {ok:false,alone,placed};
+}
+function maxFit(mask,L,W){
+  let maxL=0,maxW=0; for(let l=L-1;l>=3;l-=1){ if(findPlacements(mask,l,W,1,true).length){maxL=l;break;} }
+  for(let w=W-0.5;w>=1;w-=0.5){ if(findPlacements(mask,L,w,1,true).length){maxW=w;break;} }
+  return {maxL,maxW};
+}
+let maskCache={key:'',mask:null};
+function planCtx(){
+  if(S.src==='trace'){
+    if(!S.an||S.an.harv<=0||!S.snap) return null;
+    const key=JSON.stringify(S.an.poly.map(p=>[Math.round(p[0]*20),Math.round(p[1]*20)]));
+    if(maskCache.key!==key) maskCache={key,mask:buildMask(S.an.poly,0.5)};
+    return {mode:'trace',avail:S.an.harv,mask:maskCache.mask};
+  }
+  const avail=+S.manual.area; if(!(avail>0)) return null;
+  return {mode:'manual',avail,len:+S.manual.len||null,wid:+S.manual.wid||null};
+}
+function expandRects(items){ const out=[]; items.forEach(id=>{ const g=S.grafts.find(x=>x.id===id); if(!g)return; for(let k=0;k<g.n;k++) out.push({id,g,label:g.short+(g.n>1?(k+1):''),L:g.L,W:g.W}); }); return out; }
+function evalPlan(plan,ctx){
+  const rects=expandRects(plan.items); const area=rects.reduce((a,r)=>a+r.L*r.W,0);
+  if(!rects.length) return {plan,rects,status:'na',txt:'No graft ticked',area:0,share:0,placed:[]};
+  if(ctx.mode==='manual'){
+    let status='ok',txt='Feasible';
+    if(area>ctx.avail){status='bad';txt='Insufficient';}
+    else if(ctx.len&&ctx.wid){ const bad=rects.some(r=>!(Math.max(ctx.len,ctx.wid)>=Math.max(r.L,r.W)&&Math.min(ctx.len,ctx.wid)>=Math.min(r.L,r.W))); if(bad){status='bad';txt='Insufficient';} }
+    else {status='na';txt='Area enough, shape not checked';}
+    return {plan,rects,status,txt,area,share:area/ctx.avail,placed:[]};
+  }
+  const m=1+S.margin/100;
+  const r0=packRects(ctx.mask,rects);
+  let r1=null; if(r0.ok) r1=S.margin>0?packRects(ctx.mask,rects.map(r=>({...r,L:r.L*m,W:r.W*m}))):r0;
+  const status=!r0.ok?'bad':(r1&&r1.ok?'ok':'mid'); const txt={bad:'Insufficient',mid:'Borderline',ok:'Feasible'}[status];
+  const use=(r1&&r1.ok)?r1:r0;
+  return {plan,rects,status,txt,area,share:area/ctx.avail,r0,r1,placed:use.placed.map(p=>({...p,label:rects[p.k].label,L:rects[p.k].L,W:rects[p.k].W,id:rects[p.k].id})),alone:r0.alone};
+}
+let planT=0; function schedulePlan(){ clearTimeout(planT); planT=setTimeout(renderPlanning,120); }
+function renderPlanning(){
+  $('srcTraceMsg').textContent=S.an?`Using the traced outline: ${f0(S.an.harv)} mm² harvestable.`:'No traced outline yet. Close the outline and place K, ASA and ANS in the Patient tab, or use manual entry.';
+  const ctx=planCtx(); const thead=$('planTable').querySelector('thead'),tb=$('planTable').querySelector('tbody');
+  thead.innerHTML='<tr><th></th><th>Plan</th>'+S.grafts.map(g=>`<th title="${g.name}">${g.short}</th>`).join('')+'<th>Result</th><th>Used</th></tr>';
+  S.evals=ctx?S.plans.map(pl=>evalPlan(pl,ctx)):[];
+  tb.innerHTML='';
+  S.plans.forEach((pl,pi)=>{ const ev=S.evals[pi],tr=document.createElement('tr');
+    tr.innerHTML=`<td><input type="radio" name="planSel" value="${pl.id}" ${S.planSel===pl.id?'checked':''} aria-label="Show ${pl.name}"></td><td>${pl.name}</td>`+S.grafts.map(g=>`<td><input type="checkbox" data-g="${g.id}" ${pl.items.includes(g.id)?'checked':''} aria-label="${g.name} in ${pl.name}"></td>`).join('')+`<td>${ev?`<span class="chip ${ev.status==='na'?'na':ev.status}">${ev.txt}</span>`:'<span class="chip na">no data</span>'}</td><td>${ev&&ev.area?f0(100*ev.share)+'%':''}</td>`;
+    tr.querySelector('input[type=radio]').onchange=()=>{S.planSel=pl.id;renderPlanning();requestDraw();updateOverlays3D();};
+    tr.querySelectorAll('input[data-g]').forEach(cb=>cb.onchange=()=>{ const id=cb.dataset.g; pl.items=pl.items.filter(x=>x!==id); if(cb.checked)pl.items.push(id); renderPlanning(); });
+    tb.appendChild(tr); });
+  const sel=S.evals.find(e=>e.plan.id===S.planSel)||null; S.sel=sel&&sel.placed&&sel.placed.length?sel:null;
+  /* suggestion */
+  const sg=$('suggest'); if(!ctx){ sg.innerHTML='<p class="note">Trace the outline (or let the app suggest it in the Patient tab) to compare plans.</p>'; $('verdict').innerHTML='<p class="note">No cartilage data yet.</p>'; renderChart(null); requestDraw(); updateOverlays3D(); return; }
+  const ok=S.evals.filter(e=>e.status==='ok'),mid=S.evals.filter(e=>e.status==='mid');
+  const rank=a=>a.slice().sort((x,y)=>(y.rects.length-x.rects.length)||(x.share-y.share));
+  let h='';
+  if(ok.length){ const b=rank(ok)[0]; h=`<p class="ink"><b>Suggested: ${b.plan.name}.</b> Every graft fits with the ${S.margin}% margin and uses ${f0(100*b.share)}% of the harvestable cartilage.</p><p class="note">Rule: among plans that fit, the one with the most grafts, then the least cartilage used. This is decision support only; the surgeon decides.</p>`; }
+  else if(mid.length){ const b=rank(mid)[0]; h=`<p class="ink"><b>Closest: ${b.plan.name}.</b> It fits at the listed sizes but not with the ${S.margin}% margin, so there is little room for error.</p>`; }
+  else { const sc=S.evals.filter(e=>e.rects.length).map(e=>({e,n:e.placed.length/e.rects.length})).sort((a,b)=>b.n-a.n)[0]; h=`<p class="ink"><b>No listed plan fits completely.</b>${sc?` Closest: ${sc.e.plan.name}, which places ${sc.e.placed.length} of ${sc.e.rects.length} grafts.`:''}</p>`; }
+  sg.innerHTML=h;
+  /* detail of the selected plan */
+  let d=''; if(sel){
+    d=`<div class="row"><span class="chip ${sel.status==='na'?'na':sel.status}">${sel.txt}</span><span class="note">${sel.plan.name}: needs ${f0(sel.area)} mm² of ${f0(ctx.avail)} mm² harvestable</span></div>`;
+    if(ctx.mode==='trace'&&sel.r0){
+      d+='<table><tbody>'; sel.rects.forEach((r,i)=>{ const pl=sel.placed.find(p=>p.k===i); d+=`<tr><td>${r.label}</td><td>${r.g.name}</td><td>${r.L} × ${r.W} mm</td><td>${pl?'placed':'<span class="chip bad">no room</span>'}</td></tr>`; }); d+='</tbody></table>';
+      if(sel.status==='bad'){ const miss=sel.rects.findIndex((r,i)=>!sel.placed.some(p=>p.k===i)); const r=sel.rects[miss>=0?miss:0]; const mf=maxFit(ctx.mask,r.L,r.W); d+=`<p class="note"><b>What limits it:</b> ${r.g.name.toLowerCase()} ${r.L} × ${r.W} mm${sel.alone&&sel.alone[sel.rects.indexOf(r)]===false?' does not fit even alone':' does not fit together with the others'}. In this region a graft ${r.W} mm wide can be at most about ${mf.maxL?mf.maxL+' mm long':'under 3 mm long'}, and one ${r.L} mm long at most about ${mf.maxW?mf.maxW+' mm wide':'1 mm wide'}.</p>`; }
+    }
+  } else d='<p class="note">Select a plan.</p>';
+  if(S.contact!==''){ const c=+S.contact; d+= c<45?`<div class="warn">Crest contact ${c}% is under about 45%, where collapse risk rises sharply [1].</div>`:`<p class="note">Crest contact ${c}% is above the ~45% collapse threshold [1].</p>`; }
+  if(!ok.length){ d+=`<p class="ink" style="margin-top:8px"><b>If septal cartilage falls short</b></p><p class="note">Composite bony-cartilaginous unit: about 2.21 times the cartilage alone in the n=116 series, or roughly ${f0(ctx.avail*2.21)} mm² here. That is a population ratio, not a measurement of this patient. Check the skull-base margins on the plane (reference means: 48.9 mm to the cribriform plate, 54.3 mm to the anterior sphenoid wall [16]).</p><p class="note">Costal cartilage: donor-site complications under 3% and recipient-site warping about 5% in the systematic review [25,26].</p>`; }
+  $('verdict').innerHTML=d; renderChart(ctx.avail); requestDraw(); updateOverlays3D(); if(S.sm) rebuildSeptMesh();
+}
+function buildGraftTable(){
+  const tb=$('gTable').querySelector('tbody'); tb.innerHTML='';
+  S.grafts.forEach(g=>{ const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${g.name}</td><td><input type="number" min="1" max="4" value="${g.n}" aria-label="Count"></td><td><input type="number" min="1" step="0.5" value="${g.L}" aria-label="Length"></td><td><input type="number" min="1" step="0.5" value="${g.W}" aria-label="Width"></td>`;
+    const ins=tr.querySelectorAll('input');
+    ins[0].oninput=()=>{g.n=Math.max(1,Math.min(4,+ins[0].value||1));schedulePlan();}; ins[1].oninput=()=>{g.L=+ins[1].value||1;schedulePlan();}; ins[2].oninput=()=>{g.W=+ins[2].value||1;schedulePlan();};
+    tb.appendChild(tr); });
+}
+
+function renderChart(avail){
+  const refs=[['Kim 2014, Korea',497.3,181.7,'h'],['Nguyen 2026, n=116',461.5,0,'d'],['Kim 2010, intra-op',520.9,0,'h'],['Rendón-Medina 2025',320,0,'d'],['Nguyen 2026, composite',992.0,0,'d']];
+  const rows=refs.slice(); if(avail!=null) rows.unshift(['This patient',avail,0,'s']);
+  const mx=Math.max(1100,...rows.map(r=>r[1]+r[2]+20)),W=340,L=148,bh=16,gap=8,H=rows.length*(bh+gap)+20;
+  let s=`<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Harvestable area comparison"><defs><pattern id="hh" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="var(--panel)"/><line x1="0" y1="0" x2="0" y2="6" stroke="var(--ink)" stroke-width="2"/></pattern><pattern id="dd" width="5" height="5" patternUnits="userSpaceOnUse"><rect width="5" height="5" fill="var(--panel)"/><circle cx="2.5" cy="2.5" r="1" fill="var(--ink)"/></pattern></defs>`;
+  rows.forEach((r,i)=>{ const y=i*(bh+gap)+4,w=(W-L-30)*r[1]/mx; const fill=r[3]==='s'?'var(--accent)':r[3]==='h'?'url(#hh)':'url(#dd)';
+    s+=`<text x="${L-6}" y="${y+bh-4}" text-anchor="end" font-size="10.5" fill="var(--ink)">${r[0]}</text><rect x="${L}" y="${y}" width="${w}" height="${bh}" fill="${fill}" stroke="var(--ink)" stroke-width="1"/>`;
+    if(r[2]){ const a=(W-L-30)*(r[1]-r[2])/mx,b=(W-L-30)*(r[1]+r[2])/mx; s+=`<line x1="${L+a}" x2="${L+b}" y1="${y+bh/2}" y2="${y+bh/2}" stroke="var(--ink)"/><line x1="${L+a}" x2="${L+a}" y1="${y+3}" y2="${y+bh-3}" stroke="var(--ink)"/><line x1="${L+b}" x2="${L+b}" y1="${y+3}" y2="${y+bh-3}" stroke="var(--ink)"/>`; }
+    s+=`<text x="${L+Math.max(w,(W-L-30)*(r[1]+r[2])/mx)+5}" y="${y+bh-4}" font-size="10.5" fill="var(--muted)">${f0(r[1])}</text>`; });
+  s+=`<text x="${L}" y="${H-3}" font-size="10" fill="var(--muted)">mm²</text></svg>`; $('chart').innerHTML=s;
+}
+/* ---------------- tabs + controls ---------------- */
+const HELP={pan:'Drag to move the image. Scroll to zoom. Right-drag also pans.',trace:'Click around the septal cartilage. Click the first point again to close. Drag a point to adjust it.',lm:'Pick K, ASA or ANS, then click the image. Drag a marker to move it.',ruler:'Click two points to measure. A third click starts again.',angle:'Click three points: the end of one arm, the corner, then the end of the other arm.',hu:'Click to read the mean and spread of HU in a 2 mm disc on the plane.',thick:'Click on the septum to read its thickness across the plane and its mean HU.'};
+const LMN={K:'K: upper end of the dorsal strut, where cartilage meets the nasal bones',ASA:'ASA: anterior septal angle, the corner where dorsal and caudal struts meet',ANS:'ANS: anterior nasal spine, the lower end of the caudal strut'};
+function setTab(t){
+  S.tab=t; document.querySelectorAll('nav button').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.tab===t)));
+  document.querySelectorAll('.tabpanel').forEach(p=>p.hidden=p.id!=='tab-'+t);
+  gTeach.visible=(t==='teach')||!S.vol; gPat.visible=t!=='teach'&&!!S.vol; if(typeof septMesh!=='undefined'&&septMesh) septMesh.visible=S.ly3.sept&&t!=='teach'; if(S.vol) updateOverlays3D();
+  if(t==='teach'||!S.vol) setCamTeach(); else fitCamera();
+  if(t==='plan') renderPlanning();
+  if(t==='patient') drawMinis();
+  dirtyImg=true; requestDraw(); updatePlane3D(); dirty3=true;
+}
+function setTool(t){ S.tool=t; document.querySelectorAll('[data-tool]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.tool===t))); $('toolHelp').textContent=HELP[t]; $('lmRow').hidden=t!=='lm'; sag.style.cursor=t==='pan'?'grab':'crosshair'; }
+function setLm(k){ S.lmSel=k; document.querySelectorAll('[data-lm]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.lm===k))); $('lmName').textContent=LMN[k]; }
+function syncUI(){ $('wL').value=S.win.l; $('wW').value=S.win.w; }
+function bindRange(id,outId,fmt,fn,onChange){
+  const el=$(id); el.addEventListener('input',()=>{ $(outId).textContent=fmt(+el.value); fn(+el.value); });
+  if(onChange) el.addEventListener('change',()=>onChange(+el.value));
+}
+function setStrut(w){ S.strutW=w; $('tStrut').value=w; $('pStrut').value=w; $('tStrutO').textContent=f1(w)+' mm'; $('pStrutO').textContent=f1(w)+' mm'; }
+function bind(){
+  document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>setTab(b.dataset.tab));
+  document.querySelectorAll('[data-tool]').forEach(b=>b.onclick=()=>setTool(b.dataset.tool));
+  document.querySelectorAll('[data-lm]').forEach(b=>b.onclick=()=>setLm(b.dataset.lm));
+  document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{ if(S.tab==='teach'||!S.vol){ const d={front:[0,0,270],left:[270,0,0],right:[-270,0,0],top:[0,270,1],obl:[200,90,170]}[b.dataset.view]; camera.position.set(...d); controls.target.set(0,0,0); controls.update(); dirty3=true; } else fitCamera(b.dataset.view); });
+  /* teaching */
+  [['lyCart','cart'],['lyBone','bone'],['lyStrut','strut'],['lyHarv','harv']].forEach(([id,k])=>$(id).onchange=e=>{S.ly[k]=e.target.checked; buildTeach(); requestDraw();});
+  const tK=()=>{ const a=schAnalysis(); $('tKv').innerHTML=`<span>Cartilage (schematic)</span><span>${f0(a.total)} mm²</span><span>Harvestable</span><span>${f0(a.harv)} mm²</span><span>Share left</span><span>${f0(100*a.harv/a.total)}%</span>`; };
+  $('tStrut').addEventListener('input',e=>{ setStrut(+e.target.value); buildTeach(); tK(); requestDraw(); update(); }); tK();
+  $('pStrut').addEventListener('input',e=>{ setStrut(+e.target.value); buildTeach(); tK(); update(); });
+  bindRange('pMargin','pMarginO',v=>v+'%',v=>{S.margin=v;schedulePlan();});
+  $('pContact').oninput=e=>{S.contact=e.target.value;renderPlanning();};
+  $('srcTrace').onclick=()=>{S.src='trace';$('srcTrace').setAttribute('aria-pressed','true');$('srcManual').setAttribute('aria-pressed','false');$('srcTraceBox').hidden=false;$('srcManualBox').hidden=true;renderPlanning();};
+  $('srcManual').onclick=()=>{S.src='manual';$('srcManual').setAttribute('aria-pressed','true');$('srcTrace').setAttribute('aria-pressed','false');$('srcTraceBox').hidden=true;$('srcManualBox').hidden=false;renderPlanning();};
+  ['mArea','mLen','mWid'].forEach(id=>$(id).oninput=()=>{S.manual={area:$('mArea').value,len:$('mLen').value,wid:$('mWid').value};renderPlanning();});
+  $('mRef').onclick=()=>{ $('mArea').value=461.5; S.manual.area=461.5; renderPlanning(); };
+  buildGraftTable();
+  /* patient */
+  const drop=$('drop'),file=$('file');
+  drop.onclick=()=>file.click(); drop.onkeydown=e=>{ if(e.key==='Enter'||e.key===' '){e.preventDefault();file.click();} };
+  file.onchange=()=>{ if(file.files.length) handleFiles([...file.files]); file.value=''; };
+  ['dragenter','dragover'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('over');}));
+  ['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('over');}));
+  drop.addEventListener('drop',e=>{ if(e.dataTransfer.files.length) handleFiles([...e.dataTransfer.files]); });
+  $('ser').onchange=e=>loadCatalog(+e.target.value);
+  $('autoPlane').onclick=async()=>{ if(!S.vol){toast('Load a scan first.');return;} busy('Finding plane…'); await tick(); autoPlane(); busy(); S.snap=null; clearAll(true); dirtyImg=true; drawMinis(); requestDraw(); updatePlane3D(); toast('Plane detected. Check it on the axial and coronal views.'); };
+  const planeChange=()=>{ if(S.sm)S.sm.stale=true; renderSepRes(); syncPlaneOut(); dirtyImg=true; requestDraw(); drawMinis(); updatePlane3D(); };
+  $('pShift').addEventListener('input',e=>{S.plane.x0=S.plane.x0auto+(+e.target.value);planeChange();});
+  $('pYaw').addEventListener('input',e=>{S.plane.yaw=+e.target.value;planeChange();});
+  $('pRoll').addEventListener('input',e=>{S.plane.roll=+e.target.value;planeChange();});
+  $('pShift').addEventListener('change',updateOverlays3D);
+  $('ax').addEventListener('pointerdown',e=>miniClick(e,'ax')); $('co').addEventListener('pointerdown',e=>miniClick(e,'co'));
+  const img=()=>{dirtyImg=true;requestDraw();drawMinis();};
+  bindRange('wL','wLO',v=>f0(v),v=>{S.win.l=v;img();}); bindRange('wW','wWO',v=>f0(v),v=>{S.win.w=v;img();}); bindRange('slab','slabO',v=>v+' mm',v=>{S.slab=v;img();});
+  $('closeOutline').onclick=()=>{ if(S.pts.length<3){toast('Place at least three points.');return;} S.closed=true; update(); };
+  $('undo').onclick=()=>{ if(['angle','hu','thick'].includes(S.tool)&&(S.pending.length||S.annos.length)){ if(S.pending.length)S.pending.pop(); else S.annos.pop(); update(true); return; } if(S.closed){S.closed=false;} else S.pts.pop(); if(!S.pts.length&&!Object.values(S.lm).some(Boolean))S.snap=null; update(); };
+  const clearAll=(quiet)=>{ S.pts=[];S.closed=false;S.lm={K:null,ASA:null,ANS:null};S.ruler=[];S.snap=null;S.annos=[];S.pending=[]; update(); setLm('K'); };
+  window.clearAll=clearAll; $('clearAll').onclick=()=>clearAll();
+  $('copyRes').onclick=()=>{ const a=S.an; if(!a){toast('Nothing to copy yet.');return;} const B=basis();
+    const t=`Septal cartilage (projected area, midsagittal reformat)\nTotal cartilage: ${f0(a.total)} mm2\nL-strut width: ${f1(S.strutW)} mm\nHarvestable: ${f0(a.harv)} mm2\nDorsal edge: ${f1(a.dorsal)} mm; caudal edge: ${f1(a.caudal)} mm\nSpan: ${f1(a.feretMax)} x ${f1(a.feretMin)} mm\nPlane: yaw ${f1(S.plane.yaw)} deg, roll ${f1(S.plane.roll)} deg\nVoxel ${S.vol.sx.toFixed(2)} x ${S.vol.sy.toFixed(2)} x ${S.vol.sz.toFixed(2)} mm\nResearch/teaching tool, not a medical device.`+reportExtra();
+    (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>toast('Summary copied.')).catch(()=>toast('Copy is blocked here. Select the numbers on screen instead.')); };
+  $('bwOv').onchange=e=>{S.bw=e.target.checked;requestDraw();updateOverlays3D();};
+  $('boneHU').addEventListener('input',e=>$('boneHUO').textContent=e.target.value+' HU');
+  $('boneHU').addEventListener('change',async e=>{ S.boneHU=+e.target.value; busy('Rebuilding surface…'); await tick(); buildBone(); busy(); });
+  $('cutPlane').onchange=e=>{ S.cut=e.target.checked; if(patMesh){ patMesh.material.clippingPlanes=S.cut?[clipPl]:[]; patMesh.material.needsUpdate=true; } if(S.vol&&S.tab!=='teach'){ if(S.cut) fitCamera(); } dirty3=true; };
+  $('showPlane').onchange=e=>{ S.showPlane=e.target.checked; if(planeMesh)planeMesh.visible=S.showPlane&&S.tab!=='teach'; dirty3=true; };
+  const apply3d=()=>{ if(patMesh)patMesh.visible=S.ly3.bone; if(septMesh)septMesh.visible=S.ly3.sept&&S.tab!=='teach'; updateOverlays3D(); dirty3=true; };
+  ['bone','sept','plan'].forEach(k=>$('ly3'+k).onchange=e=>{S.ly3[k]=e.target.checked;apply3d();});
+  $('boneOp').addEventListener('input',e=>{ if(patMesh){ const o=+e.target.value; patMesh.material.transparent=o<1; patMesh.material.opacity=o; patMesh.material.depthWrite=o>=1; patMesh.material.needsUpdate=true; dirty3=true; } });
+  $('alignSep').onclick=()=>alignPlane(); $('sugOutline').onclick=async()=>{ if(!S.vol){toast('Load a scan first.');return;} busy('Looking for the septum…'); await tick(); if(!S.sm||S.sm.stale) computeSeptum(5); busy(); if(!S.sm||!septMesh) rebuildSeptMesh(); suggestOutline(); };
+  $('sepColor').onchange=()=>rebuildSeptMesh(); $('sepOnly').onchange=()=>rebuildSeptMesh();
+  setTool('pan'); setLm('K'); setStrut(10); renderChart(null);
+  new ResizeObserver(()=>{ const r=$('sagHost').getBoundingClientRect(),w=Math.max(200,Math.floor(r.width)),h=Math.max(200,Math.floor(r.height)); const bw=Math.round(w*CK),bh=Math.round(h*CK); if(sag.width!==bw||sag.height!==bh){ sag.width=bw;sag.height=bh;imgCv.width=bw;imgCv.height=bh; dirtyImg=true; requestDraw(); } }).observe($('sagHost'));
+}
+
+
+/* ================= septum engine ================= */
+const AIRHU=-450, SOFTMAX=230;
+const smBox={};
+function columnSeptum(P0,n,prof,nT,t0,dt,gate){
+  const v=S.vol;
+  for(let k=0;k<nT;k++){ const t=t0+k*dt; prof[k]=sampleVol(v,P0[0]+t*n[0],P0[1]+t*n[1],P0[2]+t*n[2]); }
+  const need=Math.round(1.5/dt); let best=null,k=0;
+  while(k<nT){
+    if(prof[k]<AIRHU){k++;continue;}
+    const s0=k; while(k<nT&&prof[k]>=AIRHU)k++; const e0=k-1, len=(e0-s0+1)*dt;
+    if(s0>=need&&e0<=nT-1-need&&len>=0.8&&len<=9){
+      let ok=true; for(let q=1;q<=need;q++){ if(prof[s0-q]>=AIRHU||prof[e0+q]>=AIRHU){ok=false;break;} }
+      if(ok){ const ct=t0+((s0+e0)/2)*dt; if(Math.abs(ct)<=(gate||99)&&(!best||Math.abs(ct)<Math.abs(best.ct))){ let mx=-1e9,sm=0; for(let q=s0;q<=e0;q++){ if(prof[q]>mx)mx=prof[q]; sm+=prof[q]; } best={ct,len,mx,mean:sm/(e0-s0+1)}; } }
+    }
+  }
+  return best;
+}
+function computeSeptum(gate){
+  gate=gate||S.gate||5; const v=S.vol; if(!v) return null; const B=basis(),n=B.n,px=0.5,half=22,dt=0.25,nT=Math.round(2*half/dt)+1;
+  const nu=Math.round(110/px),nv=Math.round(90/px),U0=S.view.uc-55,V0=S.view.vc-45;
+  const N=nu*nv, off=new Float32Array(N).fill(NaN), th=new Float32Array(N).fill(NaN), mx=new Float32Array(N).fill(NaN), mean=new Float32Array(N).fill(NaN), soft=new Uint8Array(N), prof=new Float32Array(nT);
+  for(let iv=0;iv<nv;iv++)for(let iu=0;iu<nu;iu++){
+    const P0=fromUV(U0+iu*px,V0+iv*px,B);
+    const r=columnSeptum(P0,n,prof,nT,-half,dt,gate);
+    if(r){ const i=iu+nu*iv; off[i]=r.ct; th[i]=r.len; mx[i]=r.mx; mean[i]=r.mean; soft[i]=r.mx<SOFTMAX?1:0; }
+  }
+  const sm={U0,V0,px,nu,nv,off,th,mx,mean,soft,B,gate,stale:false};
+  let nValid=0,nSoft=0,sumTh=0,sumSq=0,big=0; const absd=[];
+  for(let i=0;i<N;i++){ if(isNaN(off[i]))continue; nValid++; if(soft[i]){ nSoft++; sumTh+=th[i]; sumSq+=off[i]*off[i]; absd.push(Math.abs(off[i])); if(Math.abs(off[i])>3) big++; } }
+  absd.sort((a,b)=>a-b);
+  sm.stats={nValid,nSoft,areaValid:nValid*px*px,areaSoft:nSoft*px*px,meanTh:nSoft?sumTh/nSoft:NaN,rms:nSoft?Math.sqrt(sumSq/nSoft):NaN,p95:absd.length?absd[Math.floor(absd.length*0.95)]:NaN,areaBig:big*px*px};
+  S.sm=sm; return sm;
+}
+function robustFit(m,softOnly){
+  const pts=[]; for(let iv=0;iv<m.nv;iv++)for(let iu=0;iu<m.nu;iu++){ const i=iu+m.nu*iv; if(isNaN(m.off[i])||(softOnly&&!m.soft[i]))continue; pts.push([m.U0+iu*m.px,m.V0+iv*m.px,m.off[i]]); }
+  if(pts.length<150) return null;
+  let w=new Float32Array(pts.length).fill(1),co=[0,0,0];
+  for(let it=0;it<6;it++){
+    let a=[[0,0,0],[0,0,0],[0,0,0]],r=[0,0,0];
+    pts.forEach((p,k)=>{ const x=[1,p[0],p[1]]; for(let i=0;i<3;i++){ r[i]+=w[k]*x[i]*p[2]; for(let j=0;j<3;j++) a[i][j]+=w[k]*x[i]*x[j]; } });
+    const d=a[0][0]*(a[1][1]*a[2][2]-a[1][2]*a[2][1])-a[0][1]*(a[1][0]*a[2][2]-a[1][2]*a[2][0])+a[0][2]*(a[1][0]*a[2][1]-a[1][1]*a[2][0]); if(Math.abs(d)<1e-9) return null;
+    const inv=(M,k)=>{ const t=M.map(row=>row.slice()); for(let i=0;i<3;i++) t[i][k]=r[i]; return t; };
+    const det=m3=>m3[0][0]*(m3[1][1]*m3[2][2]-m3[1][2]*m3[2][1])-m3[0][1]*(m3[1][0]*m3[2][2]-m3[1][2]*m3[2][0])+m3[0][2]*(m3[1][0]*m3[2][1]-m3[1][1]*m3[2][0]);
+    co=[det(inv(a,0))/d,det(inv(a,1))/d,det(inv(a,2))/d];
+    pts.forEach((p,k)=>{ const res=p[2]-(co[0]+co[1]*p[0]+co[2]*p[1]); w[k]=1/(1+(res/0.8)*(res/0.8)); });
+  }
+  let sq=0; pts.forEach(p=>{ const res=p[2]-(co[0]+co[1]*p[0]+co[2]*p[1]); sq+=res*res; });
+  return {a:co[0],b:co[1],c:co[2],n:pts.length,rms:Math.sqrt(sq/pts.length)};
+}
+function setPlaneParams(x0,yaw,roll){
+  S.plane.x0=x0; S.plane.yaw=yaw; S.plane.roll=roll;
+  const sh=$('pShift'),yw=$('pYaw'),rl=$('pRoll'); const d=x0-S.plane.x0auto;
+  if(d<+sh.min) sh.min=Math.floor(d-5); if(d>+sh.max) sh.max=Math.ceil(d+5); sh.value=d;
+  if(yaw<+yw.min) yw.min=Math.floor(yaw-2); if(yaw>+yw.max) yw.max=Math.ceil(yaw+2); yw.value=yaw;
+  if(roll<+rl.min) rl.min=Math.floor(roll-2); if(roll>+rl.max) rl.max=Math.ceil(roll+2); rl.value=roll;
+  syncPlaneOut(); dirtyImg=true;
+}
+async function alignPlane(){
+  if(!S.vol){ toast('Load a scan first.'); return; }
+  busy('Aligning plane to the septum…'); await tick();
+  let fit=null,total=0;
+  for(let it=0;it<3;it++){
+    const m=computeSeptum([12,6,4][it]); fit=robustFit(m,true)||robustFit(m,false);
+    if(!fit){ busy(); toast('Could not find enough septum on this plane. Move the view over the nose and try again.'); return; }
+    const B=basis(),n=B.n,u=B.u,v=B.v,c=B.c;
+    let np=[n[0]-fit.b*u[0]-fit.c*v[0],n[1]-fit.b*u[1]-fit.c*v[1],n[2]-fit.b*u[2]-fit.c*v[2]]; const L=Math.hypot(...np); np=np.map(x=>x/L);
+    const Q=[c[0]+fit.a*n[0],c[1]+fit.a*n[1],c[2]+fit.a*n[2]];
+    const yaw=Math.atan2(np[1],np[0])/D2R, roll=Math.asin(-np[2])/D2R;
+    const x0=Q[0]-(np[1]*(c[1]-Q[1])+np[2]*(c[2]-Q[2]))/np[0];
+    total+=Math.abs(fit.a)+Math.abs(fit.b)+Math.abs(fit.c);
+    setPlaneParams(x0,yaw,roll); await tick();
+    if(Math.abs(fit.a)<0.15&&Math.abs(fit.b)<0.004&&Math.abs(fit.c)<0.004) break;
+  }
+  S.gate=5; computeSeptum(5);
+  S.pts=[];S.closed=false;S.lm={K:null,ASA:null,ANS:null};S.snap=null;S.annos=[];S.pending=[];
+  busy(); dirtyImg=true; drawMinis(); update(); updatePlane3D(); rebuildSeptMesh(); renderSepRes();
+  toast('Plane aligned to the septum.');
+}
+/* morphology on the small septum grid */
+function boxCount(A,nu,nv,r){
+  const tmp=new Int32Array(nu*nv),out=new Int32Array(nu*nv);
+  for(let j=0;j<nv;j++){ const row=j*nu,pre=new Int32Array(nu+1); for(let i=0;i<nu;i++)pre[i+1]=pre[i]+A[row+i]; for(let i=0;i<nu;i++){ const a=Math.max(0,i-r),b=Math.min(nu-1,i+r); tmp[row+i]=pre[b+1]-pre[a]; } }
+  for(let i=0;i<nu;i++){ const pre=new Int32Array(nv+1); for(let j=0;j<nv;j++)pre[j+1]=pre[j]+tmp[j*nu+i]; for(let j=0;j<nv;j++){ const a=Math.max(0,j-r),b=Math.min(nv-1,j+r); out[j*nu+i]=pre[b+1]-pre[a]; } }
+  return out;
+}
+const erode=(M,nu,nv,r)=>{ const c=boxCount(M,nu,nv,r),f=(2*r+1)*(2*r+1),o=new Uint8Array(nu*nv); for(let i=0;i<o.length;i++)o[i]=c[i]===f?1:0; return o; };
+const dilate=(M,nu,nv,r)=>{ const c=boxCount(M,nu,nv,r),o=new Uint8Array(nu*nv); for(let i=0;i<o.length;i++)o[i]=c[i]>0?1:0; return o; };
+function largestComp(M,nu,nv){
+  const lab=new Int32Array(nu*nv),q=new Int32Array(nu*nv); let best=0,bestN=0,id=0;
+  for(let s0=0;s0<M.length;s0++){ if(!M[s0]||lab[s0])continue; id++; let h=0,t=0; q[t++]=s0; lab[s0]=id; while(h<t){ const c=q[h++],x=c%nu,y=(c/nu)|0; for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){ const xx=x+dx,yy=y+dy; if(xx<0||yy<0||xx>=nu||yy>=nv)continue; const k=xx+nu*yy; if(M[k]&&!lab[k]){lab[k]=id;q[t++]=k;} } } if(t>bestN){bestN=t;best=id;} }
+  const o=new Uint8Array(nu*nv); for(let i=0;i<o.length;i++)o[i]=lab[i]===best?1:0; return o;
+}
+function fillHoles(M,nu,nv){
+  const seen=new Uint8Array(nu*nv),q=new Int32Array(nu*nv); let h=0,t=0;
+  const push=k=>{ if(!M[k]&&!seen[k]){seen[k]=1;q[t++]=k;} };
+  for(let i=0;i<nu;i++){push(i);push(i+nu*(nv-1));} for(let j=0;j<nv;j++){push(nu*j);push(nu-1+nu*j);}
+  while(h<t){ const c=q[h++],x=c%nu,y=(c/nu)|0; if(x>0)push(c-1); if(x<nu-1)push(c+1); if(y>0)push(c-nu); if(y<nv-1)push(c+nu); }
+  const o=new Uint8Array(nu*nv); for(let i=0;i<o.length;i++)o[i]=(M[i]||!seen[i])?1:0; return o;
+}
+function dpOpen(p,tol){ if(p.length<3)return p; const a=p[0],b=p[p.length-1],dx=b[0]-a[0],dy=b[1]-a[1],L=Math.hypot(dx,dy)||1; let md=-1,mi=-1; for(let i=1;i<p.length-1;i++){ const d=Math.abs((p[i][0]-a[0])*dy-(p[i][1]-a[1])*dx)/L; if(d>md){md=d;mi=i;} } if(md>tol){ const l=dpOpen(p.slice(0,mi+1),tol),r=dpOpen(p.slice(mi),tol); return l.slice(0,-1).concat(r); } return [a,b]; }
+function dpClosed(p,tol){ const n=p.length; if(n<4)return p; let k=0,md=0; for(let i=1;i<n;i++){ const d=Math.hypot(p[i][0]-p[0][0],p[i][1]-p[0][1]); if(d>md){md=d;k=i;} } const a=dpOpen(p.slice(0,k+1),tol),b=dpOpen(p.slice(k).concat([p[0]]),tol); return a.slice(0,-1).concat(b.slice(0,-1)); }
+function traceBoundary(M,nu,nv){
+  let sx=-1,sy=-1; for(let j=0;j<nv&&sx<0;j++)for(let i=0;i<nu;i++) if(M[i+nu*j]){sx=i;sy=j;break;} if(sx<0) return [];
+  const D=[[1,0],[1,1],[0,1],[-1,1],[-1,0],[-1,-1],[0,-1],[1,-1]]; const inside=(x,y)=>x>=0&&y>=0&&x<nu&&y<nv&&M[x+nu*y]===1;
+  const pts=[]; let x=sx,y=sy,dir=4,guard=0,second=null;
+  while(guard++<20*(nu+nv)*4){
+    pts.push([x,y]); let moved=false;
+    for(let k=1;k<=8;k++){ const d=(dir+k)%8,nx=x+D[d][0],ny=y+D[d][1];
+      if(inside(nx,ny)){ const pd=(dir+k-1)%8,px_=x+D[pd][0],py_=y+D[pd][1]; const ndx=px_-nx,ndy=py_-ny; let nd=0; for(let q=0;q<8;q++) if(D[q][0]===ndx&&D[q][1]===ndy){nd=q;break;} x=nx;y=ny;dir=nd;moved=true;break; } }
+    if(!moved) break;
+    if(pts.length>2&&x===sx&&y===sy) break;
+  }
+  return pts;
+}
+function suggestOutline(){
+  if(!S.vol){ toast('Load a scan first.'); return false; }
+  const m=(S.sm&&!S.sm.stale)?S.sm:computeSeptum(5); const {nu,nv,px,U0,V0}=m;
+  let M=new Uint8Array(nu*nv); for(let i=0;i<M.length;i++) M[i]=(!isNaN(m.off[i])&&m.soft[i]&&m.th[i]>=1&&m.th[i]<=7)?1:0;
+  const r=Math.round(2/px); M=dilate(erode(M,nu,nv,r),nu,nv,r); M=largestComp(M,nu,nv);
+  if(M.reduce((a,b)=>a+b,0)<150){ toast('No soft septal sheet found here. Align the plane first, or draw the outline by hand.'); return false; }
+  M=erode(dilate(M,nu,nv,Math.round(1.5/px)),nu,nv,Math.round(1.5/px)); M=fillHoles(M,nu,nv);
+  const tr=traceBoundary(M,nu,nv); const ring=tr.map(q=>[U0+q[0]*px,V0+q[1]*px]);
+  let poly=dpClosed(ring,1.2); if(poly.length<5){ toast('Could not make a usable outline. Draw it by hand.'); return false; }
+  /* landmarks: K = highest vertex; ASA = most anterior vertex above the lowest 15% of the outline; ANS = lowest vertex at least a quarter of the width behind ASA */
+  const umin=Math.min(...poly.map(p=>p[0])),umax=Math.max(...poly.map(p=>p[0])),vmin=Math.min(...poly.map(p=>p[1])),vmax=Math.max(...poly.map(p=>p[1]));
+  let K=poly[0]; poly.forEach(p=>{ if(p[1]>K[1])K=p; });
+  const up=poly.filter(p=>p[1]>=vmin+0.15*(vmax-vmin)); let ASA=up[0]; up.forEach(p=>{ if(p[0]<ASA[0])ASA=p; });
+  const cand=poly.filter(p=>p[0]>=ASA[0]+0.25*(umax-umin)&&p[0]<=umin+0.8*(umax-umin)); const pool=cand.length?cand:poly;
+  let ANS=pool[0]; pool.forEach(p=>{ if(p[1]<ANS[1]-0.3||(Math.abs(p[1]-ANS[1])<=0.3&&p[0]<ANS[0]))ANS=p; });
+  const B=basis(); S.snap=B; S.pts=poly.map(p=>fromUV(p[0],p[1],B)); S.closed=true;
+  S.lm.K=fromUV(K[0],K[1],B); S.lm.ASA=fromUV(ASA[0],ASA[1],B); S.lm.ANS=fromUV(ANS[0],ANS[1],B);
+  { const u0=Math.min(...poly.map(p=>p[0])),u1=Math.max(...poly.map(p=>p[0])),v0=Math.min(...poly.map(p=>p[1])),v1=Math.max(...poly.map(p=>p[1])); S.view.uc=(u0+u1)/2; S.view.vc=(v0+v1)/2; S.view.s=Math.min(cssW()/Math.max(70,(u1-u0)*1.7),cssH()/Math.max(60,(v1-v0)*1.7)); dirtyImg=true; }
+  update(); renderSepRes(); drawMinis(); toast('Outline and landmarks suggested. Check them and drag to correct.'); return true;
+}
+
+function roiHU(P,rad){ const B=basis(),vals=[]; for(let du=-rad;du<=rad+1e-6;du+=0.5)for(let dv=-rad;dv<=rad+1e-6;dv+=0.5){ if(du*du+dv*dv>rad*rad)continue; vals.push(sampleVol(S.vol,P[0]+du*B.u[0]+dv*B.v[0],P[1]+du*B.u[1]+dv*B.v[1],P[2]+du*B.u[2]+dv*B.v[2])); } const m=vals.reduce((a,b)=>a+b,0)/vals.length; return {mean:m,sd:Math.sqrt(vals.reduce((a,b)=>a+(b-m)*(b-m),0)/vals.length)}; }
+function thickAt(P){ const B=basis(),nT=Math.round(44/0.25)+1; return columnSeptum(P,B.n,new Float32Array(nT),nT,-22,0.25,22); }
+
+
+function reportExtra(){
+  let t=''; const st=S.sm&&S.sm.stats; if(st) t+=`\nSeptal sheet within ${S.sm.gate} mm of plane: deviation p95 ${f1(st.p95)} mm, RMS ${f1(st.rms)} mm; mean thickness (with mucosa) ${f1(st.meanTh)} mm`;
+  const os=outlineStats(); if(os) t+=`\nHarvest on the curved septum: ${f0(os.harvSurf)} mm2; ossified share of outline ${f0(100*os.ossShare)}%`;
+  if(S.evals&&S.evals.length) t+=`\nPlans (margin ${S.margin}%): `+S.evals.map(e=>e.plan.name+': '+e.txt).join('; ');
+  S.annos.forEach(a=>{ t+=`\n${a.type}: ${a.txt}`; }); return t;
+}
+
+function smUV(P){ return toUV(P,S.sm.B); }
+function pipPoly(x,y,poly){ let c=false; for(let i=0,j=poly.length-1;i<poly.length;j=i++){ const a=poly[i],b=poly[j]; if(((a[1]>y)!==(b[1]>y))&&(x<(b[0]-a[0])*(y-a[1])/(b[1]-a[1])+a[0])) c=!c; } return c; }
+function outlineStats(){
+  if(!S.sm||!S.an||!S.snap||!S.closed) return null; const m=S.sm,{nu,nv,px,U0,V0}=m;
+  const out=S.pts.map(P=>smUV(P)); const harv=S.an.poly.length>=3?S.an.poly.map(p=>smUV(fromUV(p[0],p[1],S.snap))):null;
+  let inN=0,valid=0,oss=0,hN=0,hArea=0,hSurf=0,hTh=0,hThN=0,hMin=1e9,hCov=0;
+  for(let j=1;j<nv-1;j++)for(let i=1;i<nu-1;i++){ const x=U0+i*px,y=V0+j*px,k=i+nu*j;
+    if(pipPoly(x,y,out)){ inN++; if(!isNaN(m.off[k])){ valid++; if(!m.soft[k]) oss++; } }
+    if(harv&&pipPoly(x,y,harv)){ hN++; if(!isNaN(m.off[k])){ hCov++; let gu=0,gv=0; const a=m.off[k+1],b=m.off[k-1],c=m.off[k+nu],d=m.off[k-nu]; if(!isNaN(a)&&!isNaN(b))gu=(a-b)/(2*px); if(!isNaN(c)&&!isNaN(d))gv=(c-d)/(2*px); hSurf+=px*px*Math.sqrt(1+gu*gu+gv*gv); hTh+=m.th[k]; hThN++; if(m.th[k]<hMin)hMin=m.th[k]; } else hSurf+=px*px; } }
+  return {outCov:inN?valid/inN:0,ossShare:valid?oss/valid:NaN,harvProj:hN*px*px,harvSurf:hSurf,harvCov:hN?hCov/hN:0,harvTh:hThN?hTh/hThN:NaN,harvThMin:hThN?hMin:NaN};
+}
+function renderSepRes(){
+  const box=$('sepRes'); if(!box) return; const m=S.sm; if(!m){ box.innerHTML='<p class="note">No analysis yet.</p>'; return; }
+  const st=m.stats; let h=`<div class="kv"><span>Septum found over</span><span>${f0(st.areaValid)} mm² (${f0(st.areaSoft)} mm² soft)</span><span>Deviation from plane, 95th pct</span><span>${f1(st.p95)} mm</span><span>Deviation RMS</span><span>${f1(st.rms)} mm</span><span>Area deviating over 3 mm</span><span>${f0(st.areaBig)} mm²</span><span>Septal thickness, soft (with mucosa)</span><span>${f1(st.meanTh)} mm</span>`;
+  const os=outlineStats(); if(os){ h+=`<span>Ossified share of outline</span><span>${f0(100*os.ossShare)}%</span><span>Harvest area, projected</span><span>${f0(os.harvProj)} mm²</span><span>Harvest area, on the curved septum</span><span>${f0(os.harvSurf)} mm²</span><span>Mean thickness in harvest</span><span>${f1(os.harvTh)} mm (min ${f1(os.harvThMin)})</span>`; }
+  h+='</div>'; if(m.stale) h+='<div class="warn">The plane moved after this analysis. Press Align or Suggest again to refresh.</div>';
+  box.innerHTML=h;
+}
+let septMesh=null;
+function rebuildSeptMesh(){
+  if(!gPat) return; if(septMesh){ gPat.remove(septMesh); septMesh.geometry.dispose(); septMesh.material.dispose(); septMesh=null; }
+  const m=S.sm; if(!m) return; const {nu,nv,px,U0,V0,off,th,soft,B}=m,mode=$('sepColor').value; const only=$('sepOnly')&&$('sepOnly').checked&&S.closed&&S.snap&&S.pts.length>=3, outp=only?S.pts.map(P=>smUV(P)):null;
+  const pos=[],col=[],idx=[],map=new Int32Array(nu*nv).fill(-1);
+  for(let j=0;j<nv;j++)for(let i=0;i<nu;i++){ const k=i+nu*j; if(isNaN(off[k]))continue; if(outp&&!pipPoly(U0+i*px,V0+j*px,outp))continue; const P0=fromUV(U0+i*px,V0+j*px,B),P=[P0[0]+off[k]*B.n[0],P0[1]+off[k]*B.n[1],P0[2]+off[k]*B.n[2]],sP=toScene(P); map[k]=pos.length/3; pos.push(sP.x,sP.y,sP.z);
+    let c; if(mode==='dev'){ const t=Math.max(-1,Math.min(1,off[k]/4)); c=t<0?[1+t*0.7,1+t*0.45,1]:[1,1-t*0.55,1-t*0.7]; } else if(mode==='thick'){ const t=Math.max(0,Math.min(1,(th[k]-1)/5)); c=[0.2+0.8*t,0.25+0.6*t,0.9-0.7*t]; } else if(mode==='gray'){ const t=Math.max(0,Math.min(1,(th[k]-1)/5)); c=[0.92-0.65*t,0.92-0.65*t,0.92-0.65*t]; } else c=soft[k]?[0.25,0.7,0.5]:[0.85,0.8,0.7];
+    col.push(c[0],c[1],c[2]); }
+  for(let j=0;j<nv-1;j++)for(let i=0;i<nu-1;i++){ const a=map[i+nu*j],b=map[i+1+nu*j],c=map[i+nu*(j+1)],d=map[i+1+nu*(j+1)]; if(a<0||b<0||c<0||d<0)continue; idx.push(a,b,c,b,d,c); }
+  if(!idx.length) return;
+  const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3)); g.setAttribute('color',new THREE.Float32BufferAttribute(col,3)); g.setIndex(idx);
+  septMesh=new THREE.Mesh(g,new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.DoubleSide,transparent:true,opacity:0.95,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2}));
+  septMesh.visible=S.ly3.sept&&S.tab!=='teach'; gPat.add(septMesh); dirty3=true;
+}
+
+/* ---------------- start ---------------- */
+function boot(){
+  if(typeof THREE==='undefined'||typeof JSZip==='undefined'){ toast('A required library did not load. Check your connection and reload.'); }
+  init3D(); bind(); setTab('teach'); drawMinis(); requestDraw(); renderPlanning();
+}
+boot();
+window.__api={getSM:()=>S.sm,computeSeptum,alignPlane,suggestOutline,outlineStats,robustFit};
+})();
+</script>
+</body>
+</html>

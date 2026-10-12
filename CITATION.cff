@@ -1,0 +1,19 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it, and cite the NasalSeg dataset if you use the sample or the validation."
+title: "Septal Cartilage 3D"
+version: 2.0.2
+date-released: 2026-10-12
+license: MIT
+authors:
+  - family-names: "Lâm"
+    given-names: "Kiến Thành"
+repository-code: "https://github.com/YOUR-ACCOUNT/septal-cartilage-3d"
+# After the first Zenodo release, add the DOI here:
+# doi: 10.5281/zenodo.XXXXXXX
+abstract: "Browser-based research and teaching tool for planning septal cartilage graft harvest from CT: plane alignment to the septum, suggested outline and L-strut landmarks, harvestable area, graft placement and plan comparison."
+keywords:
+  - septal cartilage
+  - rhinoplasty
+  - L-strut
+  - CT
+  - surgical planning
