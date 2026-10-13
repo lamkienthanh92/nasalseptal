@@ -1,0 +1,7 @@
+# Netlify: build the single-file app from src/ and publish the repository root.
+[build]
+  command = "node build.mjs"
+  publish = "."
+
+[build.environment]
+  NODE_VERSION = "20"

@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+- Source split into `src/` (template, stylesheet, ordered script parts) with a dependency-free `build.mjs`; the built `index.html` is byte-identical to version 2.0.2.
+- Earlier React prototype moved to `legacy/`.
+
 ## 2.0.2 (2026-10-12)
 - Reference chart in the Planning tab uses author-year labels.
 - Print overlay (black and white, hatched) also applies to the 3D view; optional grayscale 3D colouring.

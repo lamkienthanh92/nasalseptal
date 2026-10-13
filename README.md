@@ -53,17 +53,44 @@ Details of every step are in [`docs/METHODS.md`](docs/METHODS.md).
 ## Repository layout
 
 ```
-index.html            app (loads three.js and JSZip from CDNs)
-index.offline.html    same app using vendor/ (works offline)
+index.html            built app (loads three.js and JSZip from CDNs)
+index.offline.html    built app using vendor/ (works offline)
+src/                  source of the app
+  index.template.html   page shell
+  css/styles.css        styles
+  js/00-open.js ... 99-close.js   script parts, joined in file-name order
+  libs.online.html, libs.offline.html   library tags for the two builds
+build.mjs             joins src/ into index.html and index.offline.html
 vendor/               three.js r128, OrbitControls, JSZip 3.10.1 (MIT)
 sample/               one CT case from NasalSeg (CC BY 4.0)
-docs/                 METHODS.md and figures made from the app
+docs/                 METHODS.md and a figure made from the app
 validation/           scripts that compare the app with NasalSeg label-based references
+legacy/               an earlier React prototype, kept for reference only
 ```
+
+## Development
+
+The app is plain HTML, CSS and JavaScript with no framework. Edit the files in `src/` and rebuild:
+
+```
+node build.mjs        # or: npm run build
+```
+
+`index.html` and `index.offline.html` are generated from `src/` and are committed so that the app works from GitHub Pages without a build step. The script parts in `src/js/` are fragments of one function, joined in file-name order, so they are not standalone modules.
+
+## Deploying
+
+The app is static, so any static host works.
+
+- **GitHub Pages:** Settings, Pages, branch `main`, folder `/ (root)`. No build is needed because `index.html` is committed.
+- **Netlify:** `netlify.toml` sets the build command to `node build.mjs` and the publish directory to the repository root. If a site was created earlier from an older React version of this repository, open Site configuration, Build and deploy, and clear the old build command (`npm run build`) and publish directory (`build`), then use Deploys, "Clear cache and deploy site".
+- **Vercel:** `vercel.json` sets the same options. Choose "Other" as the framework preset if asked.
 
 ## Releases and DOI
 
-Tagged releases are archived on Zenodo, which gives each version a DOI. Cite the version you used. [DOI badge to be added after the first release.]
+Releases are archived on Zenodo, which gives each version a DOI. Version 2.0.2: doi:10.5281/zenodo.23307296. All versions: doi:10.5281/zenodo.23307295 (always resolves to the latest). Cite the version you used.
+
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23307295.svg)](https://doi.org/10.5281/zenodo.23307295)
 
 ## Privacy
 

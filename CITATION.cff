@@ -5,11 +5,11 @@ version: 2.0.2
 date-released: 2026-10-12
 license: MIT
 authors:
-  - family-names: "Lâm"
-    given-names: "Kiến Thành"
-repository-code: "https://github.com/YOUR-ACCOUNT/septal-cartilage-3d"
-# After the first Zenodo release, add the DOI here:
-# doi: 10.5281/zenodo.XXXXXXX
+  - family-names: "Lam"
+    given-names: "Thanh Kien"
+    affiliation: "Faculty of Medical Technology, Van Lang University, Ho Chi Minh City, Vietnam"
+repository-code: "https://github.com/lamkienthanh92/nasalseptal"
+doi: "10.5281/zenodo.23307295"
 abstract: "Browser-based research and teaching tool for planning septal cartilage graft harvest from CT: plane alignment to the septum, suggested outline and L-strut landmarks, harvestable area, graft placement and plan comparison."
 keywords:
   - septal cartilage

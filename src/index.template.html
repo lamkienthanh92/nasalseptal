@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>Septal Cartilage 3D</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&display=swap">
+<style>@@STYLES@@</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <div><h1>Septal Cartilage 3D</h1><div class="sub">Graft feasibility from CT: reformat, outline, L-strut, plan</div></div>
+  <nav role="tablist" aria-label="Sections">
+    <button role="tab" data-tab="teach" aria-selected="true">Teaching</button>
+    <button role="tab" data-tab="plan" aria-selected="false">Planning</button>
+    <button role="tab" data-tab="patient" aria-selected="false">Patient</button>
+    <button role="tab" data-tab="notes" aria-selected="false">Notes</button>
+  </nav>
+</header>
+
+<aside class="side" id="side">
+
+<!-- TEACHING -->
+<section class="tabpanel" id="tab-teach">
+  <div class="card">
+    <h2>Septal anatomy and the L-strut</h2>
+    <p class="ink">The quadrilateral cartilage is the first-choice graft source in septorhinoplasty. A dorsal and a caudal strip (the L-strut) must stay behind to hold up the nose; what is left is the harvestable cartilage.</p>
+    <div class="legend" style="margin-top:8px">
+      <span><i style="background:#7cc3dc"></i>Quadrilateral cartilage</span>
+      <span><i style="background:#d9d2bd"></i>Perpendicular plate</span>
+      <span><i style="background:#bfb8a5"></i>Vomer</span>
+      <span><i style="background:#2f9e6b"></i>Harvestable</span>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Layers</h2>
+    <div class="row"><label for="lyCart">Cartilage</label><input id="lyCart" type="checkbox" checked></div>
+    <div class="row"><label for="lyBone">Bony septum</label><input id="lyBone" type="checkbox" checked></div>
+    <div class="row"><label for="lyStrut">L-strut lines</label><input id="lyStrut" type="checkbox" checked></div>
+    <div class="row"><label for="lyHarv">Harvestable</label><input id="lyHarv" type="checkbox" checked></div>
+    <div class="row"><label for="tStrut">L-strut width</label><input id="tStrut" type="range" min="6" max="16" step="0.5" value="10"><output id="tStrutO">10 mm</output></div>
+    <div class="kv" id="tKv"></div>
+    <p class="note">Schematic only, not to scale for any patient. Load a scan in the Patient tab to measure a real septum.</p>
+  </div>
+  <div class="card">
+    <h2>What the literature fixes</h2>
+    <p class="ink">The strut is classically 10–15 mm wide. Finite-element work puts collapse risk up sharply once caudal-strut contact with the maxillary crest falls below about 45% [1]. Harvestable area after a 10 mm strut runs roughly 3.2–5.0 cm² across CT series, and falls with age as the cartilage ossifies [4,8].</p>
+  </div>
+</section>
+
+<!-- PLANNING -->
+<section class="tabpanel" id="tab-plan" hidden>
+  <div class="card">
+    <h2>Available cartilage</h2>
+    <div class="seg" role="group" aria-label="Source">
+      <button class="btn" id="srcTrace" aria-pressed="true">From traced outline</button>
+      <button class="btn" id="srcManual" aria-pressed="false">Manual entry</button>
+    </div>
+    <div id="srcTraceBox"><p class="note" id="srcTraceMsg"></p></div>
+    <div id="srcManualBox" hidden>
+      <div class="row"><label for="mArea">Area (mm²)</label><input id="mArea" type="number" min="0" step="1"></div>
+      <div class="row"><label for="mLen">Length (mm)</label><input id="mLen" type="number" min="0" step="0.5"></div>
+      <div class="row"><label for="mWid">Width (mm)</label><input id="mWid" type="number" min="0" step="0.5"></div>
+      <div class="row"><button class="btn" id="mRef">Use population mean, 461.5 mm² [16]</button></div>
+      <p class="note">Without length and width only the area budget is checked.</p>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Settings</h2>
+    <div class="row"><label for="pStrut">L-strut</label><input id="pStrut" type="range" min="6" max="16" step="0.5" value="10"><output id="pStrutO">10 mm</output></div>
+    <div class="row"><label for="pMargin">Fit margin</label><input id="pMargin" type="range" min="0" max="30" step="1" value="10"><output id="pMarginO">10%</output></div>
+    <div class="row"><label for="pContact">Crest contact</label><input id="pContact" type="number" min="0" max="100" step="1" placeholder="%"> <span class="note">caudal strut on maxillary crest</span></div>
+    <p class="note">Every graft is tested at its listed size and again enlarged by the margin. Feasible means it still fits with the margin, Borderline means it fits only at the listed size. The margin is a setting of this tool, not a published threshold.</p>
+  </div>
+  <div class="card">
+    <h2>Graft library</h2>
+    <table id="gTable"><thead><tr><th>Graft</th><th>n</th><th>L</th><th>W</th></tr></thead><tbody></tbody></table>
+    <p class="note">Sizes in mm. Spreader and columellar sizes follow [9,10]. Septal extension and tympanoplasty sizes are placeholders: set them to the sizes you use.</p>
+  </div>
+  <div class="card">
+    <h2>Plans compared</h2>
+    <p class="note">Tick the grafts each plan uses. The app places the grafts inside the harvestable region without overlap, so a plan only counts as fitting if every graft has its own space.</p>
+    <table id="planTable"><thead></thead><tbody></tbody></table>
+    <div id="suggest" style="margin-top:8px"></div>
+  </div>
+  <div class="card" id="verdictCard">
+    <h2>Selected plan</h2>
+    <div id="verdict"></div>
+  </div>
+  <div class="card">
+    <h2>Where this septum sits</h2>
+    <div id="chart"></div>
+    <p class="note">Harvestable area after a 10 mm strut, from published series. Hatched bars are references, the solid bar is this patient.</p>
+  </div>
+</section>
+
+<!-- PATIENT -->
+<section class="tabpanel" id="tab-patient" hidden>
+  <div class="card">
+    <h2>Scan</h2>
+    <div class="drop" id="drop" tabindex="0" role="button" aria-label="Choose scan files">Drop DICOM, NRRD or a ZIP here, or click to choose<br><span class="note">Everything is read in this browser and never uploaded.</span></div>
+    <input id="file" type="file" multiple hidden accept=".zip,.dcm,.nrrd,.nhdr,*/*">
+    <div class="row" id="serRow" hidden><select id="ser" aria-label="Series"></select></div>
+    <div class="kv" id="volKv" style="margin-top:6px"></div>
+    <div id="volWarn"></div>
+  </div>
+  <div class="card">
+    <h2>Midsagittal plane</h2>
+    <div class="row"><button class="btn pri" id="autoPlane">Detect plane</button><span class="note">A starting guess from left-right symmetry. Check it on the axial and coronal views.</span></div>
+    <div class="row"><label for="pShift">Shift</label><input id="pShift" type="range" min="-30" max="30" step="0.1" value="0"><output id="pShiftO">0.0 mm</output></div>
+    <div class="row"><label for="pYaw">Yaw</label><input id="pYaw" type="range" min="-25" max="25" step="0.1" value="0"><output id="pYawO">0.0°</output></div>
+    <div class="row"><label for="pRoll">Roll</label><input id="pRoll" type="range" min="-25" max="25" step="0.1" value="0"><output id="pRollO">0.0°</output></div>
+    <canvas class="mini" id="ax" width="360" height="240" aria-label="Axial slice with plane"></canvas>
+    <canvas class="mini" id="co" width="360" height="240" style="margin-top:6px" aria-label="Coronal slice with plane"></canvas>
+    <p class="note">Click either view to slide the plane through that point.</p>
+  </div>
+  <div class="card">
+    <h2>Septum analysis</h2>
+    <p class="note">Works on the plane above. Align the plane to the septum first, then let the app suggest the cartilage outline and landmarks. Check and edit the result.</p>
+    <div class="row"><button class="btn pri" id="alignSep">Align plane to septum</button><button class="btn pri" id="sugOutline">Suggest outline</button></div>
+    <div id="sepRes" style="margin-top:6px"></div>
+    <div class="row"><label for="sepOnly">Outline only</label><input id="sepOnly" type="checkbox" checked> <span class="note">show the sheet inside the outline in 3D</span></div>
+    <div class="row"><label for="sepColor">3D colour</label><select id="sepColor"><option value="dev">Deviation from plane</option><option value="thick">Septal thickness</option><option value="soft">Soft or bony</option><option value="gray">Thickness, grayscale</option></select></div>
+  </div>
+  <div class="card">
+    <h2>Image</h2>
+    <div class="row"><label for="wL">Level</label><input id="wL" type="range" min="-300" max="1200" step="5" value="150"><output id="wLO">150</output></div>
+    <div class="row"><label for="wW">Window</label><input id="wW" type="range" min="50" max="3000" step="10" value="800"><output id="wWO">800</output></div>
+    <div class="row"><label for="bwOv">Print overlay</label><input id="bwOv" type="checkbox"> <span class="note">black and white, hatched</span></div>
+    <div class="row"><label for="slab">Slab</label><input id="slab" type="range" min="0" max="6" step="0.5" value="0"><output id="slabO">0 mm</output></div>
+  </div>
+  <div class="card">
+    <h2>Measure</h2>
+    <div class="seg" role="group" aria-label="Tool">
+      <button class="btn" data-tool="pan" aria-pressed="true">Pan</button>
+      <button class="btn" data-tool="trace" aria-pressed="false">Outline</button>
+      <button class="btn" data-tool="lm" aria-pressed="false">Landmarks</button>
+      <button class="btn" data-tool="ruler" aria-pressed="false">Ruler</button>
+      <button class="btn" data-tool="angle" aria-pressed="false">Angle</button>
+      <button class="btn" data-tool="hu" aria-pressed="false">HU</button>
+      <button class="btn" data-tool="thick" aria-pressed="false">Thickness</button>
+    </div>
+    <div id="toolHelp" class="note" style="margin-top:6px"></div>
+    <div class="row" id="lmRow" hidden>
+      <div class="seg" role="group" aria-label="Landmark">
+        <button class="btn" data-lm="K" aria-pressed="true">K</button>
+        <button class="btn" data-lm="ASA" aria-pressed="false">ASA</button>
+        <button class="btn" data-lm="ANS" aria-pressed="false">ANS</button>
+      </div>
+      <span class="note" id="lmName"></span>
+    </div>
+    <div class="row">
+      <button class="btn" id="closeOutline">Close outline</button>
+      <button class="btn" id="undo">Undo</button>
+      <button class="btn" id="clearAll">Clear</button>
+    </div>
+    <div id="results" style="margin-top:8px"></div>
+    <div class="row"><button class="btn" id="copyRes">Copy summary</button></div>
+  </div>
+  <div class="card">
+    <h2>3D bone</h2>
+    <div class="row"><label for="boneHU">Threshold</label><input id="boneHU" type="range" min="150" max="700" step="10" value="300"><output id="boneHUO">300 HU</output></div>
+    <p class="note">Releasing the slider rebuilds the surface. Use the buttons above the 3D view to cut at the plane and change viewpoint.</p>
+  </div>
+</section>
+
+<!-- NOTES -->
+<section class="tabpanel" id="tab-notes" hidden>
+  <div class="card">
+    <h2>What the app does</h2>
+    <p class="ink"><b>Align plane.</b> The app samples the CT across the plane at every point and finds the thin tissue sheet with air on both sides (below −450 HU, 0.8 to 9 mm thick) closest to the plane. It fits a plane to those sheets, ignoring outliers, in three passes with a tightening gate of 12, 6 and 4 mm.</p>
+    <p class="ink"><b>Suggest outline.</b> The sheet counts as soft, meaning cartilage-like, where its highest HU is under 230. The largest soft region, cleaned by opening, becomes the outline. K is the top vertex, ASA the most anterior vertex above the lowest 15% of the outline, and ANS the lowest vertex at least a quarter of the width behind ASA. These are starting points to check and drag.</p>
+    <p class="ink"><b>Measurements.</b> Areas are projected on the plane; the curved-septum area adds the local slope of the sheet. Thickness includes mucosa and partial volume. Ossified share is the part of the outline whose sheet reaches 230 HU or more. Deviation is the offset of the sheet from the plane within the 5 mm gate.</p>
+    <p class="ink"><b>L-strut.</b> The dorsal strut runs K to ASA and the caudal strut ASA to ANS. Each line is moved inward by the strut width and the outline is cut by those two lines; what is left is the harvestable cartilage.</p>
+    <p class="ink"><b>Plans.</b> Grafts are rectangles tried at 7.5° steps on a 0.5 mm grid with about 1 mm between them. A plan fits only if every graft has its own space. Feasible means it still fits with the margin added, Borderline means it fits only at the listed sizes. The suggestion picks, among plans that fit, the one with the most grafts and then the least cartilage used.</p>
+  </div>
+  <div class="card">
+    <h2>Limits</h2>
+    <p class="ink">This is a research and teaching tool, not a medical device. Every measurement and suggestion needs a clinician's check against the images.</p>
+    <p class="ink">The suggested outline is conservative. On four NasalSeg cases it overlapped an outline derived from the dataset's nasal-cavity labels by 0.4 to 0.7 (intersection over union) and was usually smaller, while the aligned plane was within 1.5° of the label-based plane. Septal cartilage is thin and close in density to mucosa, so always check and edit.</p>
+    <p class="ink">With 1.5 mm slices the vertical resolution of the reformat is 1.5 mm and thickness is only approximate. Septal extension and tympanoplasty sizes are placeholders, and the fit margin is a setting of this tool. Only axial scans aligned to the scanner axes are read, and DICOM must be uncompressed.</p>
+  </div>
+  <div class="card">
+    <h2>Sources</h2>
+    <ol class="refs">
+      <li>[1] Lee JS, et al. Redefining the septal L-strut to prevent collapse. PLoS One 2016;11(4):e0153056.</li>
+      <li>[4] Kim JH, et al. Harvestable septal cartilage in Koreans on 3D facial CT. Arch Plast Surg 2014;41(2):163-170.</li>
+      <li>[8] Rendón-Medina MA, et al. Cir Plast 2025;35(3):107-112.</li>
+      <li>[9] Goffart Y, et al. Free spreader grafts in rhinoplasty. Eur J Plast Surg 2015;38(5):355-362.</li>
+      <li>[10] Gandy JR, et al. Columellar strut dimensions by finite element analysis. JAMA Facial Plast Surg 2016;18(3):194-200.</li>
+      <li>[16] Nguyen CD, et al. Optimizing the septal donor site in Asian rhinoplasty. Aesthetic Plast Surg 2026.</li>
+      <li>[18] Kim JS, et al. Intraoperative measurements of harvestable septal cartilage. Ann Plast Surg 2010;65(6):519-523.</li>
+      <li>[25] Park JH, Jin HR. Autologous costal cartilage in Asian rhinoplasty. Plast Reconstr Surg 2012;130(6):1338-1348.</li>
+      <li>[26] Varadharajan K, et al. Costal cartilage complications: a systematic review. Aesthet Surg J 2015;35(6):644-652.</li>
+    </ol>
+    <p class="note">Pipeline tested on the NasalSeg CT set (Zhang et al., Sci Data 2024). That set has no septal labels.</p>
+  </div>
+</section>
+</aside>
+
+<main class="stage">
+  <div class="pane">
+    <div class="pane-h"><b id="paneTitle">Schematic</b><span class="sp"></span><span id="paneHint" style="opacity:.75"></span></div>
+    <div class="pane-b" id="sagHost"><canvas id="sag"></canvas></div>
+  </div>
+  <div class="pane">
+    <div class="pane-h"><b>3D</b><span class="sp"></span>
+      <label><input type="checkbox" id="cutPlane"> Cut at plane</label>
+      <label><input type="checkbox" id="showPlane" checked> Reformat</label>
+      <label><input type="checkbox" id="ly3bone" checked> Bone</label><label><input type="checkbox" id="ly3sept" checked> Septum</label><label><input type="checkbox" id="ly3plan" checked> Plan</label>
+      <input type="range" id="boneOp" min="0.1" max="1" step="0.05" value="0.85" title="Bone opacity" aria-label="Bone opacity" style="width:70px">
+      <button data-view="obl">Oblique</button><button data-view="front">Front</button><button data-view="left">Left</button><button data-view="right">Right</button><button data-view="top">Top</button>
+    </div>
+    <div class="pane-b" id="three"></div>
+  </div>
+</main>
+</div>
+<div id="busy"><span id="busyMsg">Working…</span></div>
+<div id="toast" role="status"></div>
+
+@@LIBS@@
+<script>@@SCRIPT@@</script>
+</body>
+</html>
