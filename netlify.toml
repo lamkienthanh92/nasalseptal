@@ -1,6 +1,7 @@
-# Netlify: build the single-file app from src/ and publish the repository root.
+# Netlify: this is a static site. index.html is committed, so no real build is needed.
+# The no-op command overrides any old build command saved in the Netlify UI.
 [build]
-  command = "node build.mjs"
+  command = "echo 'Static site: serving the committed index.html'"
   publish = "."
 
 [build.environment]
