@@ -17,3 +17,19 @@ keywords:
   - L-strut
   - CT
   - surgical planning
+references:
+  - type: article
+    title: "NasalSeg: a dataset for automatic segmentation of nasal cavity and paranasal sinuses from 3D CT images"
+    authors:
+      - name: "Zhang Y, et al."
+    journal: "Scientific Data"
+    year: 2024
+    doi: "10.1038/s41597-024-04176-1"
+  - type: dataset
+    title: "NasalSeg dataset for nasal cavity and paranasal sinuses segmentation from CT images"
+    authors:
+      - name: "Zhang Y, et al."
+    repository: "https://zenodo.org/records/13893419"
+    year: 2024
+    doi: "10.5281/zenodo.13893419"
+    license: "CC-BY-4.0"
